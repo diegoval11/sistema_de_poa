@@ -1,0 +1,63 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block titulo %}Editar Proyecto{% endblock %}
+
+{% block contenido %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-congress-blue-800">Editar Proyecto</h1>
+        <p class="text-base-content/70 mt-1">Modifique la información del proyecto</p>
+    </div>
+
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario.nombre.label }}</span>
+                    </label>
+                    {{ formulario.nombre }}
+                    {% if formulario.nombre.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario.nombre.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario.anio.label }}</span>
+                    </label>
+                    {{ formulario.anio }}
+                    {% if formulario.anio.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario.anio.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario.objetivo_unidad.label }}</span>
+                    </label>
+                    {{ formulario.objetivo_unidad }}
+                    {% if formulario.objetivo_unidad.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario.objetivo_unidad.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+
+                <div class="card-actions justify-between mt-6">
+                    <a href="{% url 'poa:detalle_proyecto' proyecto.id %}" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

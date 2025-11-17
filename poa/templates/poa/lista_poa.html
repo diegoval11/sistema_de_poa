@@ -1,0 +1,61 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block titulo %}Lista de POAs{% endblock %}
+
+{% block contenido %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-congress-blue-800">Mis POAs</h1>
+    {% if request.user.rol == 'UNIDAD' %}
+    <a href="{% url 'poa:crear_poa' %}" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Crear Nuevo POA
+    </a>
+    {% endif %}
+</div>
+
+{% if poas %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for poa in poas %}
+    <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+        <div class="card-body">
+            <h2 class="card-title text-congress-blue-700">
+                POA {{ poa.gestion }}
+                <div class="badge {% if poa.estado == 'APROBADO' %}badge-success{% elif poa.estado == 'ENVIADO' %}badge-info{% elif poa.estado == 'RECHAZADO' %}badge-error{% else %}badge-warning{% endif %}">
+                    {{ poa.get_estado_display }}
+                </div>
+            </h2>
+            <p class="text-sm text-gray-600">{{ poa.unidad.nombre }}</p>
+            <div class="divider my-2"></div>
+            <p class="text-sm line-clamp-2">
+                <strong>Objetivo:</strong> {{ poa.objetivo_estrategico|truncatewords:15 }}
+            </p>
+            <div class="card-actions justify-end mt-4">
+                <a href="{% url 'poa:editar_poa' poa.id %}" class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-none">
+                    Ver/Editar
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="hero min-h-[400px] bg-base-200 rounded-lg">
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h1 class="text-3xl font-bold text-gray-700">No hay POAs creados</h1>
+            <p class="py-6 text-gray-600">Comience creando su primer Plan Operativo Anual para gestionar los proyectos de su unidad.</p>
+            {% if request.user.rol == 'UNIDAD' %}
+            <a href="{% url 'poa:crear_poa' %}" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-none">
+                Crear Mi Primer POA
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

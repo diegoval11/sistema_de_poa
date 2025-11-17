@@ -1,0 +1,227 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block titulo %}Gestionar Avances{% endblock %}
+
+{% block contenido %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'login:dashboard_unidad' %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Volver al Dashboard
+        </a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h1 class="card-title text-3xl text-congress-blue-700 mb-4">Gestionar Avances Mensuales</h1>
+            <div class="tooltip tooltip-right" data-tip="{{ proyecto.nombre }}">
+                <p class="text-base-content/60 mb-6 line-clamp-1">Proyecto: {{ proyecto.nombre }}</p>
+            </div>
+
+            {% for meta in metas %}
+            <div class="mb-8">
+                <div class="tooltip tooltip-right" data-tip="{{ meta.descripcion }}">
+                    <h2 class="text-2xl font-bold text-congress-blue-600 mb-4 line-clamp-2">{{ meta.descripcion }}</h2>
+                </div>
+                
+                {% for actividad in meta.actividades.all %}
+                <div class="collapse collapse-arrow bg-base-200 mb-4">
+                    <input type="checkbox" />
+                    <div class="collapse-title text-lg font-medium">
+                        <div class="tooltip tooltip-right" data-tip="{{ actividad.descripcion }}">
+                            <span class="line-clamp-1">{{ actividad.descripcion }} ({{ actividad.unidad_medida }})</span>
+                        </div>
+                    </div>
+                    <div class="collapse-content">
+                        <div class="overflow-x-auto">
+                            <table class="table table-compact w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Mes</th>
+                                        <th>Programado</th>
+                                        <th>Realizado</th>
+                                        <th>Estado</th>
+                                        <th>Cumplimiento</th>
+                                        <th>Evidencias</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for avance in actividad.avances.all %}
+                                    <tr>
+                                        <td>{{ avance.get_mes_display }}</td>
+                                        <td>{{ avance.cantidad_programada_mes }}</td>
+                                        <td>
+                                            <form method="post" action="{% url 'poa:gestionar_avances' proyecto.id %}" class="inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="actividad_id" value="{{ actividad.id }}">
+                                                <input type="hidden" name="mes" value="{{ avance.mes }}">
+                                                <input type="number" name="cantidad_realizada" value="{{ avance.cantidad_realizada }}" 
+                                                       class="input input-bordered input-sm w-24" min="0" max="999999">
+                                                <button type="submit" class="btn btn-sm btn-primary ml-2">Guardar</button>
+                                            </form>
+                                        </td>
+                                        
+                                        <td>
+                                            {% if avance.cantidad_realizada > avance.cantidad_programada_mes %}
+                                                <span class="badge badge-info">
+                                                    No Planificada (+{{ avance.cantidad_realizada|add:"-"|add:avance.cantidad_programada_mes }})
+                                                </span>
+                                            {% elif avance.cantidad_realizada >= avance.cantidad_programada_mes and avance.cantidad_programada_mes > 0 %}
+                                                <span class="badge badge-success">Cumplido</span>
+                                            {% elif avance.cantidad_realizada > 0 %}
+                                                <span class="badge badge-warning">Parcial</span>
+                                            {% elif avance.cumplimiento is None %}
+                                                <span class="badge badge-neutral">No aplica</span>
+                                            {% else %}
+                                                <span class="badge badge-error">Pendiente</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if avance.cumplimiento is None %}
+                                                <span class="text-gray-400 text-sm">No aplica</span>
+                                            {% else %}
+                                                <span class="text-sm">{{ avance.cumplimiento }}%</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button onclick="abrirModalEvidencia({{ actividad.id }}, {{ avance.mes }}, '{{ avance.get_mes_display }}')" 
+                                                    class="btn btn-sm btn-ghost">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                                </svg>
+                                                <span class="badge badge-sm ml-1">{{ avance.evidencias_count }}</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        {% with total_programado=0 total_realizado=0 %}
+                            {% for avance in actividad.avances.all %}
+                                {% with total_programado=total_programado|add:avance.cantidad_programada_mes total_realizado=total_realizado|add:avance.cantidad_realizada %}
+                                {% endwith %}
+                            {% endfor %}
+                            {% if total_realizado > total_programado %}
+                            <div class="alert alert-info mt-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>
+                                    <strong>Actividades no planificadas:</strong> {{ total_realizado|add:"-"|add:total_programado }} unidades adicionales realizadas
+                                </span>
+                            </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<dialog id="modalEvidencia" class="modal">
+    <div class="modal-box w-11/12 max-w-2xl">
+        <h3 class="font-bold text-lg mb-4">Subir Evidencia - <span id="mesNombre"></span></h3>
+        
+        <form method="post" action="{% url 'poa:subir_evidencia_mes' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="actividad_id" id="actividadId">
+            <input type="hidden" name="mes" id="mesNumero">
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Tipo de Evidencia</span>
+                </label>
+                <select name="tipo" class="select select-bordered" required>
+                    <option value="">Seleccione un tipo</option>
+                    <option value="PDF">PDF</option>
+                    <option value="FOTO">Foto</option>
+                    <option value="VIDEO">Video</option>
+                    <option value="URL">URL</option>
+                    <option value="MP3">Audio MP3</option>
+                </select>
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Archivo</span>
+                    <span class="label-text-alt text-warning">Máximo 30MB</span>
+                </label>
+                <input 
+                    type="file" 
+                    name="archivo" 
+                    class="file-input file-input-bordered w-full"
+                    accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.mp4,.avi,.mov,.wmv,.mkv,.flv,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.mp3,.wav,.ogg,.m4a"
+                >
+                <label class="label">
+                    <span class="label-text-alt text-base-content/60">
+                        Formatos permitidos: Imágenes (JPG, PNG, GIF, WebP), Videos (MP4, AVI, MOV), Documentos (PDF, Word, Excel, PowerPoint), Audio (MP3, WAV)
+                    </span>
+                </label>
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">URL (opcional)</span>
+                </label>
+                <input type="url" name="url" class="input input-bordered w-full" placeholder="https://...">
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Descripción</span>
+                </label>
+                <input type="text" name="descripcion" class="input input-bordered w-full" maxlength="200">
+            </div>
+            
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Subir Evidencia</button>
+                <button type="button" class="btn" onclick="document.getElementById('modalEvidencia').close()">Cancelar</button>
+            </div>
+        </form>
+        
+        <div id="evidenciasExistentes" class="mt-6">
+            <h4 class="font-bold mb-2">Evidencias del mes:</h4>
+            <div id="listaEvidencias" class="space-y-2">
+                </div>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+function abrirModalEvidencia(actividadId, mes, mesNombre) {
+    document.getElementById('actividadId').value = actividadId;
+    document.getElementById('mesNumero').value = mes;
+    document.getElementById('mesNombre').textContent = mesNombre;
+    
+    // Cargar evidencias existentes
+    fetch(`/poa/evidencias-mes/${actividadId}/${mes}/`)
+        .then(response => response.json())
+        .then(data => {
+            const listaEvidencias = document.getElementById('listaEvidencias');
+            if (data.evidencias.length === 0) {
+                listaEvidencias.innerHTML = '<p class="text-sm text-base-content/60">No hay evidencias para este mes</p>';
+            } else {
+                listaEvidencias.innerHTML = data.evidencias.map(ev => `
+                    <div class="flex items-center justify-between p-2 bg-base-200 rounded">
+                        <div class="flex items-center gap-2">
+                            <span class="badge badge-sm">${ev.tipo}</span>
+                            <span class="text-sm">${ev.descripcion || 'Sin descripción'}</span>
+                        </div>
+                        <a href="${ev.url || ev.archivo}" target="_blank" class="btn btn-xs btn-ghost">Ver</a>
+                    </div>
+                `).join('');
+            }
+        });
+    
+    document.getElementById('modalEvidencia').showModal();
+}
+</script>
+{% endblock %}

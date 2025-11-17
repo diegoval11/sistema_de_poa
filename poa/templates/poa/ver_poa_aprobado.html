@@ -1,0 +1,85 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block titulo %}Ver POA Aprobado{% endblock %}
+
+{% block contenido %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'login:dashboard_unidad' %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Volver al Dashboard
+        </a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h1 class="card-title text-3xl text-congress-blue-700 mb-4">{{ proyecto.nombre }}</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-sm text-base-content/60">Año</p>
+                    <p class="font-semibold">{{ proyecto.anio }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-base-content/60">Estado</p>
+                    <span class="badge badge-success">{{ proyecto.get_estado_display }}</span>
+                </div>
+                <div class="md:col-span-2">
+                    <p class="text-sm text-base-content/60">Descripción</p>
+                    <!-- Agregar line-clamp para descripciones largas -->
+                    <div class="tooltip tooltip-bottom" data-tip="{{ proyecto.descripcion }}">
+                        <p class="line-clamp-3">{{ proyecto.descripcion }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <h2 class="text-2xl font-bold text-congress-blue-600 mb-4">Metas y Actividades</h2>
+
+            {% for meta in metas %}
+            <div class="collapse collapse-arrow bg-base-200 mb-4">
+                <input type="checkbox" />
+                <div class="collapse-title text-xl font-medium">
+                    <!-- Truncar descripción de meta con tooltip -->
+                    <div class="tooltip tooltip-right" data-tip="{{ meta.descripcion }}">
+                        <span class="line-clamp-1">Meta {{ forloop.counter }}: {{ meta.descripcion }}</span>
+                    </div>
+                </div>
+                <div class="collapse-content">
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>Actividad</th>
+                                    <th>Unidad de Medida</th>
+                                    <th>Cantidad Programada</th>
+                                    <th>Evidencias</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for actividad in meta.actividades.all %}
+                                <tr>
+                                    <!-- Truncar descripción de actividad con tooltip -->
+                                    <td>
+                                        <div class="tooltip tooltip-right" data-tip="{{ actividad.descripcion }}">
+                                            <span class="line-clamp-2">{{ actividad.descripcion }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ actividad.unidad_medida }}</td>
+                                    <td>{{ actividad.cantidad_programada }}</td>
+                                    <td>{{ actividad.evidencias.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

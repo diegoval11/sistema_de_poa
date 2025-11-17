@@ -1,0 +1,71 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block titulo %}Crear POA{% endblock %}
+
+{% block contenido %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-congress-blue-800 mb-2">Crear Nuevo POA</h1>
+        <p class="text-gray-600">Complete la información básica del Plan Operativo Anual</p>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario.gestion.label }}</span>
+                    </label>
+                    {{ formulario.gestion }}
+                    {% if formulario.gestion.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario.gestion.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario.objetivo_estrategico.label }}</span>
+                    </label>
+                    {{ formulario.objetivo_estrategico }}
+                    {% if formulario.objetivo_estrategico.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario.objetivo_estrategico.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt">Describa el objetivo estratégico de la institución</span>
+                    </label>
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario.objetivo_unidad.label }}</span>
+                    </label>
+                    {{ formulario.objetivo_unidad }}
+                    {% if formulario.objetivo_unidad.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario.objetivo_unidad.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt">Describa el objetivo específico de su unidad</span>
+                    </label>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="flex gap-4 justify-end">
+                    <a href="{% url 'poa:lista_poa' %}" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-none">
+                        Crear POA y Continuar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

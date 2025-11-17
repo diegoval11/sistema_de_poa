@@ -1,0 +1,334 @@
+{% extends 'administrador/base_admin.html' %}
+{% load poa_filters %}
+
+{% block contenido %}
+<div class="max-w-5xl mx-auto">
+    <!-- Header mejorado con información del proyecto -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-congress-blue-800">Editar Proyecto POA</h1>
+        <p class="text-base-content/70 mt-1">{{ proyecto.nombre }} - {{ proyecto.unidad.unidad.nombre }}</p>
+    </div>
+
+    <!-- Steps Component para navegación del wizard -->
+    <div class="mb-8">
+        <ul class="steps steps-horizontal w-full">
+            <li class="step {% if paso_actual >= 1 %}step-primary{% endif %}" data-content="1">
+                <span class="hidden sm:inline">Información</span>
+            </li>
+            <li class="step {% if paso_actual >= 2 %}step-primary{% endif %}" data-content="2">
+                <span class="hidden sm:inline">Metas</span>
+            </li>
+            <li class="step {% if paso_actual >= 3 %}step-primary{% endif %}" data-content="3">
+                <span class="hidden sm:inline">Actividades</span>
+            </li>
+            <li class="step {% if paso_actual >= 4 %}step-primary{% endif %}" data-content="4">
+                <span class="hidden sm:inline">Programación</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Contenido del Wizard según el paso actual -->
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            {% if paso_actual == 1 %}
+            <!-- Paso 1: Información del Proyecto -->
+            <h2 class="card-title text-congress-blue-700 mb-4">Paso 1: Información del Proyecto</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="guardar_info">
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario_proyecto.nombre.label }}</span>
+                    </label>
+                    {{ formulario_proyecto.nombre }}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario_proyecto.anio.label }}</span>
+                    </label>
+                    {{ formulario_proyecto.anio }}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario_proyecto.objetivo_unidad.label }}</span>
+                    </label>
+                    {{ formulario_proyecto.objetivo_unidad }}
+                </div>
+
+                <div class="card-actions justify-between mt-6">
+                    <a href="{% url 'administrador:detalle_proyecto_admin' proyecto.id %}" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                        Guardar y Continuar
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+
+            {% elif paso_actual == 2 %}
+            <!-- Paso 2: Editar Metas -->
+            <h2 class="card-title text-congress-blue-700 mb-4">Paso 2: Gestionar Metas</h2>
+            <p class="text-sm text-base-content/70 mb-4">Edite, agregue o elimine metas del proyecto</p>
+
+            <!-- Formulario para agregar meta -->
+            <form method="post" class="mb-6 p-4 bg-base-200 rounded-lg">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="agregar_meta">
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ formulario_meta.descripcion.label }}</span>
+                    </label>
+                    {{ formulario_meta.descripcion }}
+                </div>
+
+                <button type="submit" class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 mt-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Agregar Meta
+                </button>
+            </form>
+
+            <!-- Lista de metas existentes -->
+            {% if metas %}
+            <div class="space-y-2 mb-6">
+                <h3 class="font-semibold text-congress-blue-700">Metas del proyecto ({{ metas.count }})</h3>
+                {% for meta in metas %}
+                <div class="flex items-start gap-3 p-3 bg-base-200 rounded-lg">
+                    <div class="badge badge-primary bg-congress-blue-600 border-0">{{ forloop.counter }}</div>
+                    <p class="flex-1">{{ meta.descripcion }}</p>
+                    <form method="post" action="{% url 'poa:eliminar_meta' meta.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-ghost btn-xs text-error" onclick="return confirm('¿Eliminar esta meta y todas sus actividades?')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Navegación -->
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-actions justify-between mt-6">
+                    <button type="submit" name="accion" value="anterior" class="btn btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Anterior
+                    </button>
+                    <button type="submit" name="accion" value="siguiente" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                        Siguiente
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+
+            {% elif paso_actual == 3 %}
+            <!-- Paso 3: Editar Actividades -->
+            <h2 class="card-title text-congress-blue-700 mb-4">Paso 3: Gestionar Actividades</h2>
+            <p class="text-sm text-base-content/70 mb-4">Edite, agregue o elimine actividades para cada meta</p>
+
+            <!-- Tabs para cada meta -->
+            <div role="tablist" class="tabs tabs-lifted mb-4">
+                {% for meta in metas %}
+                <input type="radio" name="meta_tabs" role="tab" class="tab" aria-label="Meta {{ forloop.counter }}" {% if forloop.first %}checked{% endif %} />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                    <h3 class="font-semibold text-congress-blue-700 mb-3">{{ meta.descripcion }}</h3>
+                    
+                    <!-- Formulario para agregar actividad -->
+                    <form method="post" class="mb-4 p-4 bg-base-200 rounded-lg space-y-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="agregar_actividad">
+                        <input type="hidden" name="meta_id" value="{{ meta.id }}">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="form-control md:col-span-2">
+                                <label class="label">
+                                    <span class="label-text font-semibold">{{ formulario_actividad.descripcion.label }}</span>
+                                </label>
+                                {{ formulario_actividad.descripcion }}
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">{{ formulario_actividad.unidad_medida_select.label }}</span>
+                                </label>
+                                {{ formulario_actividad.unidad_medida_select }}
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">{{ formulario_actividad.cantidad_programada.label }}</span>
+                                </label>
+                                {{ formulario_actividad.cantidad_programada }}
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">{{ formulario_actividad.total_recursos.label }}</span>
+                                </label>
+                                {{ formulario_actividad.total_recursos }}
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label cursor-pointer justify-start gap-2">
+                                    {{ formulario_actividad.es_cuantificable }}
+                                    <span class="label-text font-semibold">{{ formulario_actividad.es_cuantificable.label }}</span>
+                                </label>
+                            </div>
+
+                            <div class="form-control md:col-span-2">
+                                <label class="label">
+                                    <span class="label-text font-semibold">{{ formulario_actividad.medio_verificacion.label }}</span>
+                                </label>
+                                {{ formulario_actividad.medio_verificacion }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Agregar Actividad
+                        </button>
+                    </form>
+
+                    <!-- Lista de actividades -->
+                    {% if meta.actividades.all %}
+                    <div class="space-y-2">
+                        <h4 class="font-semibold text-sm">Actividades ({{ meta.actividades.count }})</h4>
+                        {% for actividad in meta.actividades.all %}
+                        <div class="p-3 bg-base-100 border border-base-300 rounded-lg">
+                            <div class="flex items-start gap-3">
+                                <div class="badge badge-sm badge-primary bg-congress-blue-600 border-0">{{ forloop.counter }}</div>
+                                <div class="flex-1">
+                                    <p class="font-medium">{{ actividad.descripcion }}</p>
+                                    <div class="text-xs text-base-content/70 mt-1 space-x-3">
+                                        <span>📊 {{ actividad.unidad_medida }}</span>
+                                        <span>🎯 {{ actividad.cantidad_programada }}</span>
+                                        <span>💰 Bs. {{ actividad.total_recursos }}</span>
+                                    </div>
+                                </div>
+                                <form method="post" action="{% url 'poa:eliminar_actividad' actividad.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-ghost btn-xs text-error" onclick="return confirm('¿Eliminar esta actividad?')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Navegación -->
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-actions justify-between mt-6">
+                    <button type="submit" name="accion" value="anterior" class="btn btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Anterior
+                    </button>
+                    <button type="submit" name="accion" value="siguiente" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                        Siguiente
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+
+            {% elif paso_actual == 4 %}
+            <!-- Paso 4: Programación Mensual -->
+            <h2 class="card-title text-congress-blue-700 mb-4">Paso 4: Programación Mensual</h2>
+            <p class="text-sm text-base-content/70 mb-4">Edite la distribución mensual de cada actividad</p>
+
+            <!-- Acordeón para cada actividad -->
+            {% for actividad in actividades %}
+            <div class="collapse collapse-arrow bg-base-200 mb-3">
+                <input type="checkbox" /> 
+                <div class="collapse-title font-medium">
+                    <span class="badge badge-primary bg-congress-blue-600 border-0 mr-2">{{ forloop.counter }}</span>
+                    {{ actividad.descripcion|truncatewords:15 }}
+                    <span class="text-sm text-base-content/70 ml-2">({{ actividad.unidad_medida }} - Total: {{ actividad.cantidad_programada }})</span>
+                </div>
+                <div class="collapse-content"> 
+                    <form method="post" class="mt-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="guardar_programacion">
+                        <input type="hidden" name="actividad_id" value="{{ actividad.id }}">
+                        
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm table-zebra">
+                                <thead>
+                                    <tr>
+                                        <th>Mes</th>
+                                        <th>Cantidad Programada</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for mes in meses %}
+                                    <tr>
+                                        <td class="font-medium">
+                                            {% if mes == 1 %}Enero{% elif mes == 2 %}Febrero{% elif mes == 3 %}Marzo{% elif mes == 4 %}Abril{% elif mes == 5 %}Mayo{% elif mes == 6 %}Junio{% elif mes == 7 %}Julio{% elif mes == 8 %}Agosto{% elif mes == 9 %}Septiembre{% elif mes == 10 %}Octubre{% elif mes == 11 %}Noviembre{% else %}Diciembre{% endif %}
+                                        </td>
+                                        <td>
+                                            <input type="number" name="mes_{{ mes }}" min="0" 
+                                                   value="{% if programacion_mensual %}{{ programacion_mensual|get_item:actividad.id|get_item:mes|default:0 }}{% else %}0{% endif %}" 
+                                                   class="input input-bordered input-sm w-full max-w-xs">
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 mt-3">
+                            Guardar Programación
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Navegación -->
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-actions justify-between mt-6">
+                    <button type="submit" name="accion" value="anterior" class="btn btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Anterior
+                    </button>
+                    <button type="submit" name="accion" value="finalizar" class="btn btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Finalizar Edición
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

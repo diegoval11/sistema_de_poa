@@ -1,0 +1,31 @@
+{% extends 'poa/base_dashboard.html' %}
+
+{% block titulo %}Confirmar Eliminación{% endblock %}
+
+{% block contenido %}
+<div class="max-w-2xl mx-auto">
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            
+            <h2 class="card-title justify-center mt-4">¿Está seguro?</h2>
+            <p class="text-base-content/70 mt-2">
+                Esta acción eliminará permanentemente el {{ tipo }}: <strong>{{ objeto }}</strong>
+                {% if tipo == 'proyecto' %}
+                y todas sus metas y actividades asociadas.
+                {% endif %}
+            </p>
+
+            <form method="post" class="mt-6">
+                {% csrf_token %}
+                <div class="card-actions justify-center gap-4">
+                    <a href="{% url 'poa:lista_proyectos' %}" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit" class="btn btn-error">Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'auditor/base_auditor.html' %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="space-y-6">
+    <!-- Título -->
+    <h1 class="text-3xl font-bold text-amber-700">
+        <i class="fas fa-shield-alt mr-2"></i>
+        Panel de Auditoría
+    </h1>
+
+    <!-- Estadísticas generales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat bg-base-100 shadow">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-building text-4xl"></i>
+            </div>
+            <div class="stat-title">Total Unidades</div>
+            <div class="stat-value text-primary">{{ total_unidades }}</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow">
+            <div class="stat-figure text-secondary">
+                <i class="fas fa-folder text-4xl"></i>
+            </div>
+            <div class="stat-title">Total Proyectos</div>
+            <div class="stat-value text-secondary">{{ total_proyectos }}</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-clock text-4xl"></i>
+            </div>
+            <div class="stat-title">Proyectos Pendientes</div>
+            <div class="stat-value text-warning">{{ proyectos_pendientes }}</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow">
+            <div class="stat-figure text-success">
+                <i class="fas fa-check-circle text-4xl"></i>
+            </div>
+            <div class="stat-title">Proyectos Aprobados</div>
+            <div class="stat-value text-success">{{ proyectos_aprobados }}</div>
+        </div>
+    </div>
+
+    <!-- Proyectos recientes y logs -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Proyectos recientes -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-amber-700">
+                    <i class="fas fa-folder-open mr-2"></i>
+                    Proyectos Recientes
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Proyecto</th>
+                                <th>Unidad</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for proyecto in proyectos_recientes %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'auditor:detalle_proyecto' proyecto.id %}" class="link link-primary truncate max-w-xs block">
+                                        {{ proyecto.nombre }}
+                                    </a>
+                                </td>
+                                <td class="truncate max-w-xs">{{ proyecto.unidad.unidad.nombre }}</td>
+                                <td>
+                                    {% if proyecto.estado == 'APROBADO' %}
+                                        <span class="badge badge-success">Aprobado</span>
+                                    {% elif proyecto.estado == 'ENVIADO' %}
+                                        <span class="badge badge-warning">Enviado</span>
+                                    {% elif proyecto.estado == 'RECHAZADO' %}
+                                        <span class="badge badge-error">Rechazado</span>
+                                    {% else %}
+                                        <span class="badge badge-ghost">Borrador</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">No hay proyectos recientes</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'auditor:ver_proyectos' %}" class="btn btn-sm btn-primary">
+                        Ver Todos los Proyectos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs recientes -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-amber-700">
+                    <i class="fas fa-history mr-2"></i>
+                    Actividad Reciente
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Acción</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs_recientes %}
+                            <tr>
+                                <td class="truncate max-w-xs">{{ log.usuario.email }}</td>
+                                <td>
+                                    <span class="badge badge-sm">{{ log.accion }}</span>
+                                </td>
+                                <td class="text-sm">{{ log.fecha|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">No hay logs recientes</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'auditor:ver_logs' %}" class="btn btn-sm btn-primary">
+                        Ver Todos los Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   
+{% endblock %}

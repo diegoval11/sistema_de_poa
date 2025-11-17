@@ -1,0 +1,121 @@
+{% extends 'login/base_dashboard.html' %}
+
+{% block titulo %}{{ titulo }} - Alcaldía POA{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="space-y-6">
+     Encabezado 
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-congress-blue-700">{{ titulo }}</h1>
+            <p class="text-base-content/60 mt-1">Bienvenido al panel de auditoría</p>
+        </div>
+    </div>
+
+     Estadísticas de auditoría 
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="stats shadow bg-base-100">
+            <div class="stat">
+                <div class="stat-figure text-congress-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Proyectos Revisados</div>
+                <div class="stat-value text-congress-blue-600">0</div>
+                <div class="stat-desc">Este mes</div>
+            </div>
+        </div>
+
+        <div class="stats shadow bg-base-100">
+            <div class="stat">
+                <div class="stat-figure text-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Observaciones</div>
+                <div class="stat-value text-warning">0</div>
+                <div class="stat-desc">Pendientes de revisión</div>
+            </div>
+        </div>
+
+        <div class="stats shadow bg-base-100">
+            <div class="stat">
+                <div class="stat-figure text-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Cumplimiento</div>
+                <div class="stat-value text-success">0%</div>
+                <div class="stat-desc">Promedio general</div>
+            </div>
+        </div>
+    </div>
+
+     Filtros de auditoría 
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-congress-blue-700">Filtros de Auditoría</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Unidad</span>
+                    </label>
+                    <select class="select select-bordered">
+                        <option>Todas las unidades</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Período</span>
+                    </label>
+                    <select class="select select-bordered">
+                        <option>2025</option>
+                        <option>2024</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Estado</span>
+                    </label>
+                    <select class="select select-bordered">
+                        <option>Todos</option>
+                        <option>En progreso</option>
+                        <option>Completados</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-actions justify-end mt-4">
+                <button class="btn btn-primary">Aplicar Filtros</button>
+            </div>
+        </div>
+    </div>
+
+     Proyectos para auditar 
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-congress-blue-700">Proyectos para Auditar</h2>
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Unidad</th>
+                            <th>Proyecto</th>
+                            <th>Cumplimiento</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center text-base-content/60">No hay proyectos para auditar</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

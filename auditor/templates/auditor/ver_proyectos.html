@@ -1,0 +1,81 @@
+{% extends 'auditor/base_auditor.html' %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="space-y-6">
+    <!-- Header con filtros y exportación -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-amber-700">{{ titulo }}</h1>
+            <p class="text-base-content/60 mt-1">Vista de solo lectura de todos los proyectos POA</p>
+        </div>
+        
+        <div class="flex gap-2">
+            <!-- Botones de exportación -->
+            <a href="{% url 'auditor:exportar_proyectos_pdf' %}" class="btn btn-error btn-sm" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+            </a>
+            <a href="{% url 'auditor:exportar_proyectos_excel' %}" class="btn btn-success btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <form method="get" class="flex flex-wrap gap-4">
+                <input 
+                    type="text" 
+                    name="buscar"
+                    placeholder="Buscar proyecto..." 
+                    class="input input-bordered flex-1"
+                    value="{{ busqueda }}"
+                />
+                <select name="estado" class="select select-bordered">
+                    <option value="">Todos los estados</option>
+                    <option value="BORRADOR" {% if estado_filtro == 'BORRADOR' %}selected{% endif %}>Borrador</option>
+                    <option value="ENVIADO" {% if estado_filtro == 'ENVIADO' %}selected{% endif %}>Enviado</option>
+                    <option value="APROBADO" {% if estado_filtro == 'APROBADO' %}selected{% endif %}>Aprobado</option>
+                    <option value="RECHAZADO" {% if estado_filtro == 'RECHAZADO' %}selected{% endif %}>Rechazado</option>
+                </select>
+                <button type="submit" class="btn btn-primary bg-amber-600 hover:bg-amber-700 border-none">Filtrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Grid de proyectos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for proyecto in proyectos %}
+        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <h2 class="card-title text-amber-700 truncate" title="{{ proyecto.nombre }}">{{ proyecto.nombre }}</h2>
+                <p class="text-sm text-base-content/60">{{ proyecto.unidad.unidad.nombre }}</p>
+                
+                <div class="flex gap-2 mt-2">
+                    <span class="badge {% if proyecto.estado == 'APROBADO' %}badge-success{% elif proyecto.estado == 'ENVIADO' %}badge-warning{% elif proyecto.estado == 'RECHAZADO' %}badge-error{% else %}badge-ghost{% endif %}">
+                        {{ proyecto.get_estado_display }}
+                    </span>
+                    <span class="badge badge-outline">{{ proyecto.anio }}</span>
+                </div>
+                
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'auditor:detalle_proyecto' proyecto.id %}" class="btn btn-sm btn-primary bg-amber-600 hover:bg-amber-700 border-none">
+                        Ver Detalle
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-base-content/60">No se encontraron proyectos.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

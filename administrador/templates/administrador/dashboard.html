@@ -1,0 +1,139 @@
+{% extends 'administrador/base_admin.html' %}
+
+{% block contenido %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-congress-blue-700">{{ titulo }}</h1>
+        </div>
+ 
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stats shadow bg-base-100">
+            <div class="stat">
+                <div class="stat-figure text-congress-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Unidades</div>
+                <div class="stat-value text-congress-blue-600">{{ total_unidades }}</div>
+                <div class="stat-desc">Total de unidades</div>
+            </div>
+        </div>
+
+        <div class="stats shadow bg-base-100">
+            <div class="stat">
+                <div class="stat-figure text-congress-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Proyectos</div>
+                <div class="stat-value text-congress-blue-600">{{ total_proyectos }}</div>
+                <div class="stat-desc">Total de proyectos</div>
+            </div>
+        </div>
+
+        <div class="stats shadow bg-base-100">
+            <div class="stat">
+                <div class="stat-figure text-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Pendientes</div>
+                <div class="stat-value text-warning">{{ proyectos_pendientes }}</div>
+                <div class="stat-desc">Esperando revisión</div>
+            </div>
+        </div>
+
+        <div class="stats shadow bg-base-100">
+            <div class="stat">
+                <div class="stat-figure text-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title">Aprobados</div>
+                <div class="stat-value text-success">{{ proyectos_aprobados }}</div>
+                <div class="stat-desc">Proyectos aprobados</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="mb-2">
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <a href="{% url 'administrador:lista_unidades' %}" class="btn btn-outline btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Gestionar Unidades
+                </a>
+                
+                <a href="{% url 'administrador:estadisticas' %}" class="btn btn-outline btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Ver Estadísticas
+                </a>
+
+<a href="{% url 'admin:index' %}" class="btn btn-outline btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z" />
+    </svg>
+    Panel Avanzado
+</a>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    </div>
+    
+
+    {% if proyectos_revision %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-congress-blue-700">Proyectos Pendientes de Revisión</h2>
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Unidad</th>
+                            <th>Proyecto</th>
+                            <th>Año</th>
+                            <th>Fecha Envío</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for proyecto in proyectos_revision %}
+                        <tr>
+                            <td>{{ proyecto.unidad.unidad.nombre }}</td>
+                            <td>{{ proyecto.nombre }}</td>
+                            <td>{{ proyecto.anio }}</td>
+                            <td>{{ proyecto.fecha_creacion|date:"d/m/Y" }}</td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <a href="{% url 'administrador:detalle_proyecto_admin' proyecto.id %}" class="btn btn-sm btn-info">Ver</a>
+                                
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+{% endblock %}

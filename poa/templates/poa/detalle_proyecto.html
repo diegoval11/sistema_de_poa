@@ -1,0 +1,92 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block titulo %}Detalle del Proyecto{% endblock %}
+
+{% block contenido %}
+<div class="max-w-7xl mx-auto">
+      
+    <div class="flex justify-between items-start mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-congress-blue-800">{{ proyecto.nombre }}</h1>
+            <p class="text-base-content/70 mt-1">
+                <span class="font-semibold">Unidad:</span> {{ proyecto.unidad.unidad.nombre }} | 
+                <span class="font-semibold">Año:</span> {{ proyecto.anio }}
+            </p>
+        </div>
+        <div class="flex gap-2">
+            {% if request.user.rol == 'UNIDAD' and proyecto.unidad == request.user %}
+       
+            {% endif %}
+            <a href="{% url 'poa:lista_proyectos' %}" class="btn btn-ghost">Volver</a>
+        </div>
+    </div>
+
+     Objetivo de la Unidad 
+    {% if proyecto.objetivo_unidad %}
+    <div class="card bg-base-200 mb-6">
+        <div class="card-body">
+            <h3 class="font-semibold text-congress-blue-700">Objetivo de la Unidad</h3>
+            <p>{{ proyecto.objetivo_unidad }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+     Metas y Actividades 
+    {% for meta in metas %}
+    <div class="card bg-base-100 shadow-md mb-4">
+        <div class="card-body">
+            <h3 class="card-title text-congress-blue-700">Meta {{ forloop.counter }}</h3>
+            <p class="mb-4">{{ meta.descripcion }}</p>
+
+            {% if meta.actividades.all %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Actividad</th>
+                            <th>Unidad de Medida</th>
+                            <th>Programado</th>
+                            <th>Recursos (Bs.)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for actividad in meta.actividades.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ actividad.descripcion }}</td>
+                            <td>{{ actividad.unidad_medida }}</td>
+                            <td>{{ actividad.cantidad_programada }}</td>
+                            <td>{{ actividad.total_recursos }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <span>No hay actividades registradas para esta meta</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if not metas %}
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body text-center py-12">
+            <p class="text-base-content/70">No hay metas registradas para este proyecto</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+
+
+
+
+<!--
+
+Cuando intente subir un avance mensual puse un numero > 100 se me crasheo
+-->

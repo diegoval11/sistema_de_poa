@@ -1,0 +1,197 @@
+{% extends 'administrador/base_admin.html' %}
+
+{% block contenido %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-congress-blue-700">{{ titulo }}</h1>
+            <p class="text-base-content/60 mt-1">{{ unidad.email }}</p>
+        </div>
+        <a href="{% url 'administrador:lista_unidades' %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Volver
+        </a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-congress-blue-700">Proyectos</h2>
+            
+            {% if proyectos %}
+                <div class="alert alert-info mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Total de proyectos: {{ proyectos|length }}. Debe revisar cada proyecto antes de aceptarlo.</span>
+                </div>
+            {% endif %}
+            
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Proyecto</th>
+                            <th>Año</th>
+                            <th>Estado</th>
+                            <th>Fecha Creación</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for proyecto in proyectos %}
+                        <tr>
+                            <td>
+                                <div class="font-semibold">{{ proyecto.nombre }}</div>
+                            </td>
+                            <td>{{ proyecto.anio }}</td>
+                            <td>
+                                {% if proyecto.estado == 'BORRADOR' %}
+                                    <span class="badge badge-ghost">Borrador</span>
+                                {% elif proyecto.estado == 'ENVIADO' %}
+                                    <span class="badge badge-warning">Enviado</span>
+                                {% elif proyecto.estado == 'APROBADO' %}
+                                    <span class="badge badge-success">Aprobado</span>
+                                {% elif proyecto.estado == 'RECHAZADO' %}
+                                    <span class="badge badge-error">Rechazado</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ proyecto.fecha_creacion|date:"d/m/Y" }}</td>
+                            <td>
+                                <div class="flex gap-2 justify-center flex-wrap">
+                                    <a href="{% url 'administrador:detalle_proyecto_admin' proyecto.id %}" 
+                                       class="btn btn-sm btn-info">
+                                        Ver Detalles
+                                    </a>
+                                    
+                                    {% if proyecto.estado == 'ENVIADO' %}
+                                   
+                                    {% elif proyecto.estado == 'APROBADO' %}
+                                        <a href="{% url 'administrador:editar_proyecto_admin' proyecto.id %}" 
+                                           class="btn btn-sm btn-warning">
+                                            Editar
+                                        </a>
+                                        <span class="badge badge-success gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            POA Aprobado
+                                        </span>
+                                    
+                                    {% elif proyecto.estado == 'BORRADOR' %}
+                                        <span class="badge badge-ghost">Esperando envío</span>
+                                    {% elif proyecto.estado == 'RECHAZADO' %}
+                                        <span class="badge badge-error">Rechazado</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-base-content/60 py-8">
+                                <div class="flex flex-col items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <p>Esta unidad no tiene proyectos registrados.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<dialog id="modal_confirmar_aceptacion" class="modal">
+    <div class="modal-box max-w-2xl">
+        <h3 class="font-bold text-2xl text-warning mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            ⚠️ Confirmar Aceptación de POA
+        </h3>
+        
+        <div class="space-y-4">
+            <p class="text-lg">
+                ¿Estás seguro de que deseas <strong class="text-success">ACEPTAR</strong> el proyecto:
+            </p>
+            <div class="bg-base-200 p-4 rounded-lg">
+                <p class="font-bold text-xl text-congress-blue-700" id="nombre_proyecto_aceptar"></p>
+            </div>
+            
+            <div class="alert alert-warning shadow-lg">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                        <h3 class="font-bold text-lg">¡ATENCIÓN - ACCIÓN IRREVERSIBLE!</h3>
+                        <div class="text-sm mt-2 space-y-2">
+                            <p>Al aceptar este POA:</p>
+                            <ul class="list-disc list-inside ml-4 space-y-1">
+                                <li>Se <strong>ELIMINARÁN PERMANENTEMENTE</strong> todos los demás proyectos de esta unidad</li>
+                                <li>Total de proyectos a eliminar: <strong class="text-error" id="cantidad_proyectos_eliminar"></strong></li>
+                                <li>Solo este POA quedará visible y activo</li>
+                                <li><strong>Esta acción NO se puede deshacer</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-action">
+            <form method="dialog">
+                <button class="btn btn-ghost">Cancelar</button>
+            </form>
+            <button onclick="aceptarProyecto()" class="btn btn-success gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Sí, ACEPTAR POA
+            </button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+    let proyectoIdAceptar = null;
+
+    function confirmarAceptacion(proyectoId, nombreProyecto, totalProyectos) {
+        console.log('[v0] Abriendo modal de confirmación');
+        console.log('[v0] Proyecto ID:', proyectoId);
+        console.log('[v0] Nombre:', nombreProyecto);
+        console.log('[v0] Total proyectos:', totalProyectos);
+        
+        proyectoIdAceptar = proyectoId;
+        document.getElementById('nombre_proyecto_aceptar').textContent = nombreProyecto;
+        
+        // Calcular cuántos proyectos se eliminarán (total - 1 que se acepta)
+        const cantidadEliminar = totalProyectos - 1;
+        document.getElementById('cantidad_proyectos_eliminar').textContent = cantidadEliminar + ' proyecto(s)';
+        
+        // Mostrar el modal
+        document.getElementById('modal_confirmar_aceptacion').showModal();
+    }
+
+    function aceptarProyecto() {
+        if (proyectoIdAceptar) {
+            console.log('[v0] Aceptando proyecto ID:', proyectoIdAceptar);
+            window.location.href = `/administrador/proyectos/${proyectoIdAceptar}/aprobar/`;
+        } else {
+            console.error('[v0] Error: proyectoIdAceptar es null');
+            alert('Error: No se pudo identificar el proyecto a aceptar');
+        }
+    }
+    
+    console.log('[v0] Página de proyectos cargada');
+    console.log('[v0] Total de proyectos en la página:', {{ proyectos|length }});
+</script>
+{% endblock %}
