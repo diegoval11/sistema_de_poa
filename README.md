@@ -73,7 +73,7 @@ python manage shell
 from login.models import Unidad
 nombre_unidad = "Unidad Administrativa"
 unidad_obj, created = Unidad.objects.update_or_create(
-   id = 0
+   id = 0,
    defaults = {
       'nombre': nombre_unidad,
       'activa':True,
