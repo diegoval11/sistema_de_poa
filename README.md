@@ -66,6 +66,24 @@ Instalar Dependencias del Frontend
 
 -python manage.py migrate
 
+
+**ANTES DE CREAR UN USUARIO DEBE CREAR SU PRIMERA UNIDAD**
+python manage shell
+'''
+from login.models import Unidad
+nombre_unidad = "Unidad Administrativa"
+unidad_obj, created = Unidad.objects.update_or_create(
+   id = 0
+   defaults = {
+      'nombre': nombre_unidad,
+      'activa':True,
+      'sin_reporte':True
+}
+
+)
+exit()
+'''
+
 -python manage.py createsuperuser
 
 -python manage.py runserver
@@ -73,3 +91,15 @@ Instalar Dependencias del Frontend
 
 **Correr el frontend con:**
 npm run dev
+
+
+
+
+
+
+
+
+
+
+
+
