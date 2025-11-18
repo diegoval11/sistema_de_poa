@@ -29,18 +29,36 @@
             <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="General" 
                    {% if active_tab == 'general' %}checked{% endif %} />
             <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-1 gap-6"> <!-- CAMBIADO a 1 columna -->
                     <div class="card bg-white shadow-xl">
                         <div class="card-body">
                             <h2 class="card-title text-congress-blue-700">Cumplimiento por Unidad</h2>
-                            <canvas id="chartCumplimientoUnidades"></canvas>
+                            
+                            <!-- ================================================== -->
+                            <!-- CAMBIO 1: Contenedor con scroll para el gráfico   -->
+                            <!-- ================================================== -->
+                            <div class="max-h-[600px] overflow-y-auto p-2 bg-base-200/30 rounded-lg relative">
+                                <canvas id="chartCumplimientoUnidades"></canvas>
+                            </div>
+
                         </div>
                     </div>
+                    <!-- El gráfico de Proyectos fue movido a su propia pestaña -->
+                </div>
+            </div>
 
+            <!-- ===== Pestaña Proyectos (NUEVA) ===== -->
+            <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="Proyectos" 
+                   {% if active_tab == 'proyectos' %}checked{% endif %} />
+            <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                <div class="grid grid-cols-1 gap-6">
                     <div class="card bg-white shadow-xl">
                         <div class="card-body">
                             <h2 class="card-title text-congress-blue-700">Distribución de Proyectos</h2>
-                            <canvas id="chartDistribucionProyectos"></canvas>
+                            <!-- CAMBIO 1: Añadido div con altura fija y 'relative' -->
+                            <div class="h-96 relative">
+                                <canvas id="chartDistribucionProyectos"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -190,7 +208,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // (Todo el código JS de tus gráficos va aquí, sin cambios)
     const unidadesData = {{ unidades_data|safe }};
     const proyectosData = {{ proyectos_data|safe }};
 
@@ -203,10 +220,26 @@
         info: '#3b82f6'
     };
     
-    // Gráfico de Cumplimiento por Unidad
+    // ==================================================
+    // CAMBIO 2: Lógica del Gráfico de Cumplimiento
+    // ==================================================
     const ctxCumplimiento = document.getElementById('chartCumplimientoUnidades').getContext('2d');
+    const canvasCumplimiento = document.getElementById('chartCumplimientoUnidades');
+    
+    // --- INICIO DE LA MODIFICACIÓN ---
+    
+    // 1. Calcular altura dinámica para el scroll
+    // Damos 30px por cada barra para que sea legible
+    const numUnidades = unidadesData.nombres.length;
+    // (Asegura un mínimo de altura por si no hay datos)
+    const alturaCanvas = numUnidades > 0 ? numUnidades * 30 : 300; // 72 unidades * 30px = 2160px
+    
+    // Asignamos la altura directamente al estilo del canvas
+    // El div contenedor con max-h-[600px] se encargará del scroll
+    canvasCumplimiento.style.height = `${alturaCanvas}px`;
+
     new Chart(ctxCumplimiento, {
-        type: 'bar',
+        type: 'bar', // Sigue siendo 'bar', pero cambiaremos el eje
         data: {
             labels: unidadesData.nombres,
             datasets: [{
@@ -218,17 +251,34 @@
             }]
         },
         options: {
+            indexAxis: 'y', // <-- 2. ¡LA MAGIA! Lo vuelve horizontal
             responsive: true,
-            maintainAspectRatio: true,
-            scales: { y: { beginAtZero: true, max: 100, ticks: { callback: function(value) { return value + '%'; } } } },
+            maintainAspectRatio: false, // <-- 3. CRÍTICO para que el scroll funcione
+            scales: { 
+                x: { // <-- 4. Eje 'x' ahora es el porcentaje
+                    beginAtZero: true, 
+                    max: 100, 
+                    ticks: { callback: function(value) { return value + '%'; } } 
+                },
+                y: { // <-- Eje 'y' son las unidades
+                    beginAtZero: true
+                }
+            },
             plugins: {
                 legend: { display: false },
-                tooltip: { callbacks: { label: function(context) { return 'Cumplimiento: ' + context.parsed.y + '%'; } } }
+                tooltip: { 
+                    callbacks: { 
+                        // 5. Tooltip ahora lee 'x' en vez de 'y'
+                        label: function(context) { return 'Cumplimiento: ' + context.parsed.x + '%'; } 
+                    } 
+                }
             }
         }
     });
+    // --- FIN DE LA MODIFICACIÓN ---
 
-    // Gráfico de Distribución de Proyectos
+
+    // Gráfico de Distribución de Proyectos (Sin cambios)
     const ctxDistribucion = document.getElementById('chartDistribucionProyectos').getContext('2d');
     new Chart(ctxDistribucion, {
         type: 'doughnut',
@@ -241,10 +291,14 @@
                 borderColor: '#fff'
             }]
         },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, /* CAMBIO 2: Cambiado a 'false' */
+            plugins: { legend: { position: 'bottom' } } 
+        }
     });
 
-    // Gráfico de Avances Mensuales
+    // Gráfico de Avances Mensuales (Sin cambios)
     const ctxAvances = document.getElementById('chartAvancesMensuales').getContext('2d');
     new Chart(ctxAvances, {
         type: 'line',
@@ -272,7 +326,7 @@
         options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'top' } } }
     });
 
-    // Gráfico Radar de Comparativa
+    // Gráfico Radar de Comparativa (Sin cambios)
     const ctxRadar = document.getElementById('chartComparativaRadar').getContext('2d');
     const datasets = unidadesData.nombres.slice(0, 5).map((nombre, index) => ({
         label: nombre,
