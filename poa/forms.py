@@ -13,12 +13,12 @@ class FormularioProyecto(forms.ModelForm):
             'nombre': forms.TextInput(attrs={
                 'class': 'input input-bordered w-full',
                 'placeholder': 'Nombre del proyecto...',
-                'required': True,
+                
             }),
             'objetivo_unidad': forms.Textarea(attrs={
                 'class': 'textarea textarea-bordered w-full',
                 'rows': 3,
-                'placeholder': 'Describa el objetivo de la unidad...',
+                'placeholder': 'Describa el objetivo de la unidad... (Opcional)',
             }),
             'anio': forms.NumberInput(attrs={
                 'class': 'input input-bordered w-full',
@@ -33,6 +33,10 @@ class FormularioProyecto(forms.ModelForm):
             'objetivo_unidad': 'Objetivo de la Unidad',
             'anio': 'Año',
         }
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['nombre'].required = False
+            self.fields['objetivo_unidad'].required = False
 
 
 class FormularioMeta(forms.ModelForm):
@@ -123,10 +127,11 @@ class FormularioActividad(forms.ModelForm):
                 'class': 'checkbox checkbox-primary',
                 'id': 'id_es_cuantificable',
             }),
-            'medio_verificacion': forms.Textarea(attrs={
+          'medio_verificacion': forms.Textarea(attrs={
                 'class': 'textarea textarea-bordered w-full',
                 'rows': 2,
                 'placeholder': 'Medio de verificación...',
+                'required': True,
             }),
             'recursos': forms.Textarea(attrs={
                 'class': 'textarea textarea-bordered w-full',

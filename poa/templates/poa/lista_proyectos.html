@@ -4,53 +4,36 @@
 
 {% block contenido %}
 <div class="max-w-7xl mx-auto">
-    <!-- Header -->
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-3xl font-bold text-congress-blue-800">Proyectos POA</h1>
             <p class="text-base-content/70 mt-1">Gestión de Planes Operativos Anuales</p>
         </div>
-        <!-- Solo mostrar botón si no tiene POA aprobado -->
-        {% if request.user.rol == 'UNIDAD' and not tiene_poa_aprobado %}
+        {% if request.user.rol == 'UNIDAD' %}
         <a href="{% url 'poa:crear_proyecto_wizard' %}" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Crear Nuevo Proyecto
         </a>
-        {% elif request.user.rol == 'UNIDAD' and tiene_poa_aprobado %}
-        <!-- Mostrar mensaje informativo si tiene POA aprobado -->
-        <div class="alert alert-info">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>Su unidad ya tiene un POA aprobado</span>
-        </div>
         {% endif %}
     </div>
 
-    <!-- Lista de Proyectos -->
     {% if proyectos %}
     <div class="grid gap-4">
         {% for proyecto in proyectos %}
         <div class="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
             <div class="card-body">
-                <!-- Usar grid en lugar de flex para mantener botones fijos -->
                 <div class="grid grid-cols-[1fr_auto] gap-4 items-start">
-                    <!-- Contenido del proyecto con ancho flexible -->
                     <div class="min-w-0 overflow-hidden">
-                        <!-- Rediseñar contenedor del título para prevenir desbordamiento absoluto -->
                         <div class="flex items-start gap-3 mb-2 min-w-0 overflow-hidden">
-                            <!-- Contenedor del título con ancho máximo controlado -->
                             <div class="min-w-0 flex-1 overflow-hidden">
                                 <div class="tooltip tooltip-right w-full" data-tip="{{ proyecto.nombre }}">
-                                    <!-- Título con múltiples capas de protección contra desbordamiento -->
                                     <h2 class="card-title text-congress-blue-700 truncate w-full max-w-full overflow-hidden" style="word-break: break-all;">
                                         {{ proyecto.nombre }}
                                     </h2>
                                 </div>
                             </div>
-                            <!-- Badges con ancho fijo que no se mueven -->
                             <div class="flex-shrink-0">
                                 {% if proyecto.estado == 'BORRADOR' %}
                                     <span class="badge badge-ghost badge-lg whitespace-nowrap">Borrador</span>
@@ -59,7 +42,6 @@
                                 {% elif proyecto.estado == 'APROBADO' %}
                                     <span class="badge badge-success badge-lg whitespace-nowrap">Aprobado</span>
                                 {% elif proyecto.estado == 'RECHAZADO' %}
-                                    <!-- Quitado tooltip, badge simple sin hover -->
                                     <span class="badge badge-error badge-lg whitespace-nowrap">Rechazado</span>
                                 {% endif %}
                             </div>
@@ -69,23 +51,22 @@
                             <span class="font-semibold">Año:</span> {{ proyecto.anio }}
                         </p>
                  {% if proyecto.objetivo_unidad %}
-    {# Establece un límite de caracteres. Puedes ajustar el número 150. #}
-    {% if proyecto.objetivo_unidad|length > 150 %}
-        <div class="collapse collapse-arrow bg-base-200 mt-2 overflow-hidden">
-            <input type="checkbox" />
-            <div class="collapse-title text-sm py-2 min-h-0 line-clamp-2 overflow-hidden break-words">
-                {{ proyecto.objetivo_unidad }}
-            </div>
-            <div class="collapse-content">
-                <p class="text-sm break-words">{{ proyecto.objetivo_unidad }}</p>
-            </div>
-        </div>
-    {% else %}
-        <p class="text-sm mt-2 break-words">{{ proyecto.objetivo_unidad }}</p>
-    {% endif %}
-{% endif %}
+                {# Establece un límite de caracteres. Puedes ajustar el número 150. #}
+                {% if proyecto.objetivo_unidad|length > 150 %}
+                    <div class="collapse collapse-arrow bg-base-200 mt-2 overflow-hidden">
+                        <input type="checkbox" />
+                        <div class="collapse-title text-sm py-2 min-h-0 line-clamp-2 overflow-hidden break-words">
+                            {{ proyecto.objetivo_unidad }}
+                        </div>
+                        <div class="collapse-content">
+                            <p class="text-sm break-words">{{ proyecto.objetivo_unidad }}</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-sm mt-2 break-words">{{ proyecto.objetivo_unidad }}</p>
+                {% endif %}
+            {% endif %}
                         
-                        <!-- Estadísticas -->
                         <div class="flex gap-4 mt-3 flex-wrap">
                             <div class="badge badge-outline">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,7 +74,6 @@
                                 </svg>
                                 {{ proyecto.metas.count }} Meta{{ proyecto.metas.count|pluralize }}
                             </div>
-                            <!-- Usar total_actividades calculado en la vista -->
                             <div class="badge badge-outline">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -103,9 +83,7 @@
                         </div>
                     </div>
                     
-                    <!-- Botones de acción con ancho fijo (auto) que no se mueven -->
                     <div class="flex flex-col gap-2 items-end flex-shrink-0">
-                        <!-- Botón ENVIAR simplificado con color congress-blue -->
                         {% if request.user.rol == 'UNIDAD' and proyecto.unidad == request.user and proyecto.estado == 'BORRADOR' %}
                         <button onclick="confirmarEnvio{{ proyecto.id }}()" class="btn btn-md bg-congress-blue-600 hover:bg-congress-blue-700 text-white border-0 gap-2 flex-shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,8 +93,6 @@
                         </button>
                         {% endif %}
                         
-                        <!-- Menú de acciones -->
-                        {% if proyecto.estado != 'RECHAZADO' %}
                         <div class="dropdown dropdown-end">
                             <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle flex-shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,14 +100,17 @@
                                 </svg>
                             </div>
                             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                <!-- Cambiar "Ver Detalle" según el estado del proyecto -->
-                                {% if proyecto.estado == 'BORRADOR' %}
+                                {% if proyecto.estado == 'BORRADOR' or proyecto.estado == 'RECHAZADO' %}
                                     <li><a href="{% url 'poa:editar_proyecto' proyecto.id %}">Editar Proyecto</a></li>
-                                {% else %}
-                                    <li><a href="{% url 'poa:ver_poa_aprobado' proyecto.id %}">Ver Detalle</a></li>
+                                {% endif %}
+
+                                <li><a href="{% url 'poa:detalle_proyecto' proyecto.id %}">Ver Detalle</a></li>
+
+                                {% if proyecto.estado == 'APROBADO' %}
+                                    <li><a href="{% url 'poa:gestionar_avances' proyecto.id %}" class="text-success font-bold">Gestionar Avances</a></li>
+                                    <li><a href="{% url 'poa:ver_reportes' proyecto.id %}">Ver Reportes</a></li>
                                 {% endif %}
                                 
-                                <!-- Permitir eliminar proyectos en BORRADOR -->
                                 {% if request.user.rol == 'UNIDAD' and proyecto.unidad == request.user and proyecto.estado == 'BORRADOR' %}
                                 <li>
                                     <a href="{% url 'poa:eliminar_proyecto' proyecto.id %}" 
@@ -143,11 +122,9 @@
                                 {% endif %}
                             </ul>
                         </div>
-                        {% endif %}
                     </div>
                 </div>
                 
-                <!-- Mensaje de ayuda -->
                 {% if request.user.rol == 'UNIDAD' and proyecto.unidad == request.user %}
                     {% if proyecto.estado == 'BORRADOR' %}
                     <div class="alert alert-info mt-3">
@@ -188,7 +165,6 @@
             </div>
         </div>
         
-        <!-- Modal de confirmación -->
         <dialog id="modalEnvio{{ proyecto.id }}" class="modal">
             <div class="modal-box max-w-md">
                 <h3 class="font-bold text-lg text-congress-blue-700 mb-4">Confirmar Envío</h3>
@@ -230,7 +206,7 @@
             </svg>
             <h3 class="text-xl font-semibold mt-4">No hay proyectos registrados</h3>
             <p class="text-base-content/70 mt-2">Comience creando su primer proyecto POA</p>
-            {% if request.user.rol == 'UNIDAD' and not tiene_poa_aprobado %}
+            {% if request.user.rol == 'UNIDAD' %}
             <a href="{% url 'poa:crear_proyecto_wizard' %}" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 mt-4">
                 Crear Proyecto
             </a>

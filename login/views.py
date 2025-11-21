@@ -1,8 +1,11 @@
+from decimal import Decimal
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
+
+from poa.models import AvanceMensual, Proyecto
 from .forms import FormularioLogin, FormularioCambiarClave
 
 
@@ -82,52 +85,57 @@ def dashboard_auditor(request):
 
 @login_required
 def dashboard_unidad(request):
-    """Dashboard para unidades"""
-    from poa.models import Proyecto
+    if request.user.rol != 'UNIDAD':
+        return redirect('login:login')
     
-    poa_aprobado = Proyecto.objects.filter(
-        unidad__unidad=request.user.unidad,
-        estado='APROBADO'
-    ).first()
+    # Obtener todos los proyectos de la unidad
+    proyectos = Proyecto.objects.filter(unidad__unidad=request.user.unidad).order_by('-anio', '-fecha_modificacion')
     
-    contexto = {
-        'titulo': 'Panel de Unidad',
-        'rol': 'Unidad',
+    # Estadísticas
+    total_proyectos = proyectos.count()
+    proyectos_aprobados = proyectos.filter(estado='APROBADO').count()
+    proyectos_revision = proyectos.filter(estado='ENVIADO').count()
+    proyectos_borrador = proyectos.filter(estado__in=['BORRADOR', 'RECHAZADO']).count()
+    
+    # Cálculo de cumplimiento global (solo de proyectos aprobados)
+    cumplimiento_global = Decimal(0)
+    proyectos_aprobados_qs = proyectos.filter(estado='APROBADO')
+    
+    total_programado_global = 0
+    total_realizado_global = 0
+    
+    if proyectos_aprobados_qs.exists():
+        # Obtener todos los avances de los proyectos aprobados
+        avances = AvanceMensual.objects.filter(actividad__meta__proyecto__in=proyectos_aprobados_qs)
+        
+        for avance in avances:
+            prog = avance.cantidad_programada_mes or 0
+            real = avance.cantidad_realizada or 0
+            # Solo sumamos lo realizado hasta el tope de lo programado para el % de cumplimiento
+            # (aunque el dato real se guarde completo)
+            total_programado_global += prog
+            total_realizado_global += min(real, prog)
+            
+        if total_programado_global > 0:
+            cumplimiento_global = (Decimal(total_realizado_global) / Decimal(total_programado_global)) * 100
+            cumplimiento_global = round(cumplimiento_global, 1)
+
+    # Proyectos recientes (para la lista rápida)
+    proyectos_recientes = proyectos[:5]
+    
+    context = {
         'unidad': request.user.unidad,
-        'poa_aprobado': poa_aprobado
+        'titulo': 'Panel de Control',
+        'total_proyectos': total_proyectos,
+        'proyectos_aprobados': proyectos_aprobados,
+        'proyectos_revision': proyectos_revision,
+        'proyectos_borrador': proyectos_borrador,
+        'cumplimiento_global': cumplimiento_global,
+        'proyectos_recientes': proyectos_recientes,
+        'tiene_proyectos': total_proyectos > 0
     }
     
-    # Si tiene POA aprobado, agregar estadísticas
-    if poa_aprobado:
-        from django.db.models import Count, Sum, Avg
-        
-        # Contar actividades
-        total_actividades = poa_aprobado.metas.aggregate(
-            total=Count('actividades')
-        )['total'] or 0
-        
-        # Calcular cumplimiento promedio
-        from poa.models import AvanceMensual
-        cumplimiento_promedio = AvanceMensual.objects.filter(
-            actividad__meta__proyecto=poa_aprobado
-        ).aggregate(
-            promedio=Avg('cumplimiento')
-        )['promedio'] or 0
-        
-        # Contar evidencias
-        from poa.models import Evidencia
-        total_evidencias = Evidencia.objects.filter(
-            actividad__meta__proyecto=poa_aprobado
-        ).count()
-        
-        contexto.update({
-            'total_actividades': total_actividades,
-            'cumplimiento_promedio': round(cumplimiento_promedio, 2),
-            'total_evidencias': total_evidencias
-        })
-    
-    return render(request, 'poa/dashboard_unidad.html', contexto)
-
+    return render(request, 'poa/dashboard_unidad.html', context)
 
 @login_required
 def cambiar_clave(request):

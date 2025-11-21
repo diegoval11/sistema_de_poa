@@ -38,21 +38,18 @@
                 {% csrf_token %}
                 <input type="hidden" name="accion" value="siguiente">
                 
-                <div class="form-control">
+              <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">{{ formulario_proyecto.nombre.label }}</span>
-                        <!-- Agregando contador de caracteres -->
+                        <span class="label-text font-semibold">{{ formulario_proyecto.nombre.label }} <span class="text-xs font-normal text-gray-500">(Opcional)</span></span>
                         <span class="label-text-alt text-base-content/60">
                             <span id="nombre-count">0</span>/200
                         </span>
                     </label>
                     <input type="text" name="nombre" maxlength="200" class="input input-bordered w-full" 
                            value="{{ formulario_proyecto.nombre.value|default:'' }}" 
-                           id="nombre-input" required>
+                           id="nombre-input">
                     {% if formulario_proyecto.nombre.errors %}
                     <label class="label">
-                        <span class="label-text-alt text-error">{{ formulario_proyecto.nombre.errors.0 }}</span>
-                    </label>
                     {% endif %}
                 </div>
 
@@ -264,8 +261,8 @@
                                 </label>
                                 <textarea name="medio_verificacion" maxlength="500" rows="2" 
                                           class="textarea textarea-bordered w-full medio-verificacion-input" 
-                                          data-meta="{{ meta.id }}"></textarea>
-                            </div>
+                                    data-meta="{{ meta.id }}" required></textarea>     
+                                                       </div>
 
                             <div class="form-control md:col-span-2">
                                 <label class="label">

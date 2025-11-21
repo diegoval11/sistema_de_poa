@@ -251,11 +251,19 @@
             }]
         },
         options: {
+<<<<<<< HEAD
             indexAxis: 'y', // <-- 2. ¡LA MAGIA! Lo vuelve horizontal
             responsive: true,
             maintainAspectRatio: false, // <-- 3. CRÍTICO para que el scroll funcione
             scales: { 
                 x: { // <-- 4. Eje 'x' ahora es el porcentaje
+=======
+            indexAxis: 'y', 
+            responsive: true,
+            maintainAspectRatio: false, 
+            scales: { 
+                x: { 
+>>>>>>> 90324ef (correcciones de datos requeridos/no requeridos y exportacion en excel y pdf)
                     beginAtZero: true, 
                     max: 100, 
                     ticks: { callback: function(value) { return value + '%'; } } 

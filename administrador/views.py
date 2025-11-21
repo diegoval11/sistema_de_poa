@@ -36,31 +36,29 @@ def verificar_admin(user):
     """Verifica que el usuario sea administrador"""
     return user.is_authenticated and user.rol == 'ADMIN'
 
-
-@admin_required
+@login_required
 def dashboard_admin(request):
     """Dashboard principal del administrador"""
+    if request.user.rol != 'ADMIN':
+        return redirect('login:login')
     
-    total_unidades = Usuario.objects.filter(rol='UNIDAD').count()
+    # Estadísticas generales
     total_proyectos = Proyecto.objects.count()
-    proyectos_pendientes = Proyecto.objects.filter(estado='ENVIADO').count()
     proyectos_aprobados = Proyecto.objects.filter(estado='APROBADO').count()
+    proyectos_enviados = Proyecto.objects.filter(estado='ENVIADO').count()
+    proyectos_borrador = Proyecto.objects.filter(estado='BORRADOR').count()
     
-    proyectos_recientes = Proyecto.objects.select_related('unidad__unidad').order_by('-fecha_creacion')[:5]
+    # Proyectos pendientes de revisión (Enviados)
+    pendientes = Proyecto.objects.filter(estado='ENVIADO').select_related('unidad').order_by('-fecha_modificacion')
     
-    proyectos_revision = Proyecto.objects.filter(estado='ENVIADO').select_related('unidad__unidad')[:10]
-    
-    contexto = {
-        'titulo': 'Dashboard Administrador',
-        'total_unidades': total_unidades,
+    context = {
         'total_proyectos': total_proyectos,
-        'proyectos_pendientes': proyectos_pendientes,
         'proyectos_aprobados': proyectos_aprobados,
-        'proyectos_recientes': proyectos_recientes,
-        'proyectos_revision': proyectos_revision,
+        'proyectos_enviados': proyectos_enviados,
+        'proyectos_borrador': proyectos_borrador,
+        'pendientes': pendientes,
     }
-    
-    return render(request, 'administrador/dashboard.html', contexto)
+    return render(request, 'administrador/dashboard.html', context)
 
 
 
@@ -239,64 +237,30 @@ def proyectos_unidad(request, unidad_id):
 
 @admin_required
 def aprobar_proyecto(request, proyecto_id):
-    """Aprueba un proyecto enviado por una unidad y elimina los demás proyectos de esa unidad"""
-    
+    """
+    Lógica corregida: Aprueba el proyecto SIN eliminar los demás.
+    Permite que una unidad tenga múltiples proyectos aprobados (ej. diferentes años o fondos).
+    """
+    if request.user.rol != 'ADMIN':
+        return redirect('login:login')
+        
     proyecto = get_object_or_404(Proyecto, id=proyecto_id)
     
-    if proyecto.estado != 'ENVIADO':
-        messages.error(request, 'Solo se pueden aprobar proyectos en estado ENVIADO.')
-        return redirect('administrador:proyectos_unidad', unidad_id=proyecto.unidad.id)
+    if request.method == 'POST':
+        # 1. Cambiar estado a Aprobado
+        proyecto.estado = 'APROBADO'
+        proyecto.aprobado_por = request.user
+        proyecto.fecha_aprobacion = timezone.now()
+        proyecto.motivo_rechazo = '' # Limpiar motivos de rechazo anteriores
+        proyecto.save()
+        
+        # CORRECCIÓN: Se eliminó el bloque que borraba los demás proyectos de la unidad.
+        # Antes: Proyecto.objects.filter(unidad=proyecto.unidad).exclude(id=proyecto.id).delete() -> ELIMINADO
+        
+        messages.success(request, f'El proyecto "{proyecto.nombre}" ha sido aprobado exitosamente.')
+        return redirect('administrador:dashboard')
     
-    proyectos_a_eliminar = Proyecto.objects.filter(
-        unidad__unidad=proyecto.unidad.unidad
-    ).exclude(id=proyecto.id)
-    
-    # Registrar en auditoría los proyectos eliminados
-    for proyecto_eliminado in proyectos_a_eliminar:
-        AuditoriaLog.objects.create(
-            usuario=request.user,
-            accion='ELIMINACION_AUTOMATICA',
-            tabla='Proyecto',
-            registro_id=proyecto_eliminado.id,
-            datos_anteriores={
-                'nombre': proyecto_eliminado.nombre,
-                'estado': proyecto_eliminado.estado,
-                'anio': proyecto_eliminado.anio
-            },
-            datos_nuevos={'motivo': f'Eliminado al aprobar proyecto {proyecto.nombre}'},
-            ip=request.META.get('REMOTE_ADDR')
-        )
-    
-    # Eliminar los proyectos
-    cantidad_eliminados = proyectos_a_eliminar.count()
-    proyectos_a_eliminar.delete()
-    
-    # Aprobar el proyecto seleccionado
-    proyecto.estado = 'APROBADO'
-    proyecto.aprobado_por = request.user
-    proyecto.fecha_aprobacion = timezone.now()
-    proyecto.save()
-    
-    # Registrar en auditoría la aprobación
-    AuditoriaLog.objects.create(
-        usuario=request.user,
-        accion='APROBACION',
-        tabla='Proyecto',
-        registro_id=proyecto.id,
-        datos_nuevos={
-            'estado': 'APROBADO',
-            'fecha_aprobacion': str(timezone.now()),
-            'proyectos_eliminados': cantidad_eliminados
-        },
-        ip=request.META.get('REMOTE_ADDR')
-    )
-    
-    messages.success(
-        request,
-        f'Proyecto "{proyecto.nombre}" aprobado exitosamente. '
-        f'Se eliminaron {cantidad_eliminados} proyecto(s) adicional(es) de esta unidad.'
-    )
-    return redirect('administrador:proyectos_unidad', unidad_id=proyecto.unidad.id)
+    return render(request, 'administrador/confirmar_aprobacion.html', {'proyecto': proyecto})
 
 
 @admin_required

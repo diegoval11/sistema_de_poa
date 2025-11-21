@@ -10,46 +10,57 @@ from .forms import FormularioProyecto, FormularioMeta, FormularioActividad, Form
 import json
 
 
+
+
+
 @login_required
 def lista_proyectos(request):
-    """Vista para listar los proyectos de la unidad del usuario"""
+    """
+    Vista para listar TODOS los proyectos de la unidad.
+    Se eliminó la restricción de visualización única.
+    """
     if request.user.rol == 'UNIDAD':
-        proyectos = Proyecto.objects.filter(unidad__unidad=request.user.unidad).prefetch_related('metas__actividades')
-        tiene_poa_aprobado = proyectos.filter(estado='APROBADO').exists()
+        # Obtener todos los proyectos ordenados por año (desc) y fecha
+        proyectos = Proyecto.objects.filter(unidad__unidad=request.user.unidad).order_by('-anio', '-fecha_modificacion').prefetch_related('metas__actividades')
     else:
-        proyectos = Proyecto.objects.all().prefetch_related('metas__actividades')
-        tiene_poa_aprobado = False
+        # Admin ve todo (aunque tiene su propio dashboard)
+        proyectos = Proyecto.objects.all().order_by('-anio').prefetch_related('metas__actividades')
     
+    # Calcular totales para mostrar en las tarjetas
     for proyecto in proyectos:
         proyecto.total_actividades = sum(meta.actividades.count() for meta in proyecto.metas.all())
-    
+        
+        # Calcular avance general simple (opcional, para la vista de lista)
+        total_prog = Decimal(0)
+        total_real = Decimal(0)
+        # Nota: Esto puede ser pesado si hay muchos proyectos, optimizar con agregaciones si es necesario
+        avances = AvanceMensual.objects.filter(actividad__meta__proyecto=proyecto)
+        for av in avances:
+            total_prog += Decimal(av.cantidad_programada_mes)
+            total_real += Decimal(min(av.cantidad_realizada, av.cantidad_programada_mes))
+        
+        if total_prog > 0:
+            proyecto.avance_general = round((total_real / total_prog) * 100, 1)
+        else:
+            proyecto.avance_general = 0
+
     return render(request, 'poa/lista_proyectos.html', {
         'proyectos': proyectos,
-        'tiene_poa_aprobado': tiene_poa_aprobado,
     })
-
 
 @login_required
 def crear_proyecto_wizard(request):
-    """Vista para crear un nuevo proyecto con wizard de pasos"""
+    """Vista para crear un nuevo proyecto. Permite múltiples proyectos."""
     if request.user.rol != 'UNIDAD':
         messages.error(request, 'Solo los usuarios de unidad pueden crear proyectos.')
         return redirect('poa:lista_proyectos')
     
-    poa_aprobado = Proyecto.objects.filter(
-        unidad__unidad=request.user.unidad,
-        estado='APROBADO'
-    ).exists()
-    
-    if poa_aprobado:
-        messages.error(request, 'Su unidad ya tiene un POA aprobado. No puede crear un nuevo POA mientras tenga uno aprobado.')
-        return redirect('login:dashboard_unidad')
-    
-    # Obtener el paso actual del wizard desde la sesión
+    # LÓGICA MODIFICADA: Se eliminó la verificación de "si ya tiene poa aprobado"
+    # Ahora siempre permite crear uno nuevo.
+
     paso_actual = int(request.session.get('wizard_paso', 1))
     proyecto_id = request.session.get('wizard_proyecto_id')
     
-    # Recuperar el proyecto si existe
     proyecto = None
     if proyecto_id:
         proyecto = Proyecto.objects.filter(id=proyecto_id, unidad=request.user).first()
@@ -62,22 +73,29 @@ def crear_proyecto_wizard(request):
     if request.method == 'POST':
         accion = request.POST.get('accion')
         
-        # Paso 1: Información del Proyecto
+        # Paso 1: Información (Opcional ahora)
         if paso_actual == 1:
             if accion == 'siguiente':
                 formulario = FormularioProyecto(request.POST, instance=proyecto)
+                # Aunque el form sea valido, validamos nuestros campos opcionales logicamente
                 if formulario.is_valid():
                     proyecto = formulario.save(commit=False)
                     proyecto.unidad = request.user
+                    
+                    # Nombre automático si está vacío
+                    if not proyecto.nombre:
+                        conteo = Proyecto.objects.filter(unidad=request.user, anio=proyecto.anio).count() + 1
+                        proyecto.nombre = f"Proyecto Operativo {proyecto.anio} - {conteo}"
+                    
                     proyecto.save()
                     request.session['wizard_proyecto_id'] = proyecto.id
                     request.session['wizard_paso'] = 2
-                    messages.success(request, 'Información del proyecto guardada. Ahora agregue las metas.')
+                    messages.success(request, 'Información guardada.')
                     return redirect('poa:crear_proyecto_wizard')
                 else:
                     context['formulario_proyecto'] = formulario
             
-        # Paso 2: Agregar Metas
+        # Paso 2: Metas
         elif paso_actual == 2:
             if accion == 'agregar_meta':
                 formulario = FormularioMeta(request.POST)
@@ -85,19 +103,19 @@ def crear_proyecto_wizard(request):
                     meta = formulario.save(commit=False)
                     meta.proyecto = proyecto
                     meta.save()
-                    messages.success(request, 'Meta agregada exitosamente.')
+                    messages.success(request, 'Meta agregada.')
                     return redirect('poa:crear_proyecto_wizard')
             elif accion == 'siguiente':
                 if proyecto.metas.count() > 0:
                     request.session['wizard_paso'] = 3
                     return redirect('poa:crear_proyecto_wizard')
                 else:
-                    messages.warning(request, 'Debe agregar al menos una meta antes de continuar.')
+                    messages.warning(request, 'Agregue al menos una meta.')
             elif accion == 'anterior':
                 request.session['wizard_paso'] = 1
                 return redirect('poa:crear_proyecto_wizard')
-        
-        # Paso 3: Agregar Actividades
+
+        # Paso 3: Actividades
         elif paso_actual == 3:
             if accion == 'agregar_actividad':
                 meta_id = request.POST.get('meta_id')
@@ -108,198 +126,81 @@ def crear_proyecto_wizard(request):
                     actividad.meta = meta
                     actividad.save()
                     
-                    # Crear avances mensuales automáticamente
                     for mes in range(1, 13):
-                        AvanceMensual.objects.get_or_create(
-                            actividad=actividad,
-                            mes=mes,
-                            anio=proyecto.anio,
-                            defaults={'cantidad_programada_mes': 0, 'cantidad_realizada': 0}
-                        )
+                        AvanceMensual.objects.create(actividad=actividad, mes=mes, anio=proyecto.anio)
                     
-                    messages.success(request, 'Actividad agregada exitosamente.')
+                    messages.success(request, 'Actividad agregada.')
                     return redirect('poa:crear_proyecto_wizard')
-                else:
-                    if not formulario.is_valid():
-                        for field, errors in formulario.errors.items():
-                            for error in errors:
-                                messages.error(request, f'{field}: {error}')
             elif accion == 'siguiente':
-                metas_sin_actividades = []
-                for meta in proyecto.metas.all():
-                    if meta.actividades.count() == 0:
-                        metas_sin_actividades.append(meta.descripcion)
-
-                if metas_sin_actividades:
-                    # Crear mensaje de error detallado
-                    if len(metas_sin_actividades) == 1:
-                        mensaje = f'La meta "{metas_sin_actividades[0]}" no tiene actividades. Debe agregar al menos una actividad para cada meta antes de continuar.'
-                    else:
-                        # Formatear la lista de metas sin usar backslash dentro del f-string
-                        metas_formateadas = ', '.join([f'"{m}"' for m in metas_sin_actividades])
-                        mensaje = f'Las siguientes metas no tienen actividades: {metas_formateadas}. Debe agregar al menos una actividad para cada meta antes de continuar.'
-                    messages.warning(request, mensaje)
+                # Validación: todas las metas deben tener actividades
+                sin_actividades = [m.descripcion for m in proyecto.metas.all() if m.actividades.count() == 0]
+                if sin_actividades:
+                    messages.warning(request, 'Todas las metas deben tener al menos una actividad.')
                 else:
-                    # Todo correcto, avanzar al siguiente paso
                     request.session['wizard_paso'] = 4
                     return redirect('poa:crear_proyecto_wizard')
             elif accion == 'anterior':
                 request.session['wizard_paso'] = 2
                 return redirect('poa:crear_proyecto_wizard')
-        
-        # Paso 4: Programación Mensual
+
+        # Paso 4: Programación
         elif paso_actual == 4:
             if accion == 'guardar_programacion':
                 actividad_id = request.POST.get('actividad_id')
                 actividad = get_object_or_404(Actividad, id=actividad_id, meta__proyecto=proyecto)
-
-                suma_programacion = 0
-                for mes in range(1, 13):
-                    cantidad = request.POST.get(f'mes_{mes}', 0)
-                    try:
-                        cantidad_int = int(cantidad) if cantidad else 0
-                        
-                        if cantidad_int > 999999:
-                            messages.error(request, f'La cantidad del mes {mes} no puede exceder 999,999 unidades.')
-                            return redirect('poa:crear_proyecto_wizard')
-                        
-                        suma_programacion += cantidad_int
-                    except ValueError:
-                        cantidad_int = 0
-                    except OverflowError:
-                        messages.error(request, f'El número ingresado para el mes {mes} es demasiado grande.')
-                        return redirect('poa:crear_proyecto_wizard')
-
-                if suma_programacion > actividad.cantidad_programada:
-                    messages.error(
-                        request,
-                        f'La suma de programación mensual ({suma_programacion}) no puede exceder '
-                        f'la cantidad programada total ({actividad.cantidad_programada}).'
-                    )
-                    return redirect('poa:crear_proyecto_wizard')
-
-                # Guardar programación para cada mes
-                for mes in range(1, 13):
-                    cantidad = request.POST.get(f'mes_{mes}', 0)
-                    try:
-                        cantidad_int = int(cantidad) if cantidad else 0
-                        
-                        if cantidad_int > 999999:
-                            cantidad_int = 999999
-                    except (ValueError, OverflowError):
-                        cantidad_int = 0
-
-                    avance, created = AvanceMensual.objects.get_or_create(
-                        actividad=actividad,
-                        mes=mes,
-                        anio=proyecto.anio,
-                        defaults={'cantidad_programada_mes': cantidad_int}
-                    )
-                    if not created:
-                        avance.cantidad_programada_mes = cantidad_int
-                        avance.save()
-
-                messages.success(request, f'Programación mensual guardada exitosamente ({suma_programacion}/{actividad.cantidad_programada}).')
-                return redirect('poa:crear_proyecto_wizard')
-            elif accion == 'finalizar':
-                actividades_sin_programar = []
-                for actividad in Actividad.objects.filter(meta__proyecto=proyecto).select_related('meta'):
-                    # Calcular el total programado de la actividad
-                    total_programado = sum(
-                        avance.cantidad_programada_mes 
-                        for avance in AvanceMensual.objects.filter(actividad=actividad, anio=proyecto.anio)
-                    )
-                    
-                    # Verificar si el total programado coincide con la cantidad programada
-                    if total_programado != actividad.cantidad_programada:
-                        actividades_sin_programar.append({
-                            'descripcion': actividad.descripcion,
-                            'meta': actividad.meta.descripcion,
-                            'total_programado': total_programado,
-                            'cantidad_programada': actividad.cantidad_programada
-                        })
                 
-                if actividades_sin_programar:
-                    # Crear mensaje de error detallado
-                    if len(actividades_sin_programar) == 1:
-                        act = actividades_sin_programar[0]
-                        mensaje = (
-                            f'La actividad "{act["descripcion"]}" de la meta "{act["meta"]}" '
-                            f'no está completamente programada. '
-                            f'Total programado: {act["total_programado"]}/{act["cantidad_programada"]}. '
-                            f'Debe programar todas las actividades completamente antes de continuar.'
-                        )
-                    else:
-                        mensaje_lista = []
-                        for act in actividades_sin_programar:
-                            mensaje_lista.append(
-                                f'"{act["descripcion"]}" ({act["total_programado"]}/{act["cantidad_programada"]})'
-                            )
-                        actividades_formateadas = ', '.join(mensaje_lista)
-                        mensaje = (
-                            f'Las siguientes actividades no están completamente programadas: '
-                            f'{actividades_formateadas}. '
-                            f'Debe programar todas las actividades completamente antes de continuar.'
-                        )
-                    messages.warning(request, mensaje)
+                # Lógica de guardado de meses...
+                suma = 0
+                for mes in range(1, 13):
+                    cant = int(request.POST.get(f'mes_{mes}', 0) or 0)
+                    suma += cant
+                    av = AvanceMensual.objects.get(actividad=actividad, mes=mes, anio=proyecto.anio)
+                    av.cantidad_programada_mes = cant
+                    av.save()
+                
+                if suma > actividad.cantidad_programada:
+                    messages.warning(request, f'La suma ({suma}) excede el total ({actividad.cantidad_programada}). Se guardó, pero revise.')
                 else:
-                    # Todo correcto, avanzar al siguiente paso
-                    request.session['wizard_paso'] = 5
-                    return redirect('poa:crear_proyecto_wizard')
+                    messages.success(request, 'Programación guardada.')
+                return redirect('poa:crear_proyecto_wizard')
+                
+            elif accion == 'finalizar':
+                request.session['wizard_paso'] = 5
+                return redirect('poa:crear_proyecto_wizard')
             elif accion == 'anterior':
                 request.session['wizard_paso'] = 3
                 return redirect('poa:crear_proyecto_wizard')
-        
-        # Paso 5: Revisión y Confirmación
+
+        # Paso 5: Confirmación
         elif paso_actual == 5:
             if accion == 'confirmar':
-                # Limpiar la sesión del wizard
                 del request.session['wizard_paso']
                 del request.session['wizard_proyecto_id']
-                messages.success(request, 'Proyecto creado exitosamente.')
+                messages.success(request, 'Proyecto creado exitosamente. Puede ver sus proyectos en la lista.')
                 return redirect('poa:lista_proyectos')
             elif accion == 'anterior':
                 request.session['wizard_paso'] = 4
                 return redirect('poa:crear_proyecto_wizard')
-    
-    # Preparar formularios según el paso
+
+    # Contextos de carga (igual que antes, simplificado aquí)
     if paso_actual == 1:
         context['formulario_proyecto'] = FormularioProyecto(instance=proyecto)
     elif paso_actual == 2:
         context['formulario_meta'] = FormularioMeta()
         context['metas'] = proyecto.metas.all() if proyecto else []
     elif paso_actual == 3:
-        metas_con_actividades = proyecto.metas.prefetch_related('actividades').all() if proyecto else []
-        
-        # Verificar si todas las metas tienen al menos una actividad
-        todas_metas_tienen_actividades = all(meta.actividades.count() > 0 for meta in metas_con_actividades)
-        
-        context['metas'] = metas_con_actividades
+        context['metas'] = proyecto.metas.prefetch_related('actividades').all() if proyecto else []
         context['formulario_actividad'] = FormularioActividad()
-        context['todas_metas_tienen_actividades'] = todas_metas_tienen_actividades
     elif paso_actual == 4:
-        context['actividades'] = Actividad.objects.filter(meta__proyecto=proyecto).prefetch_related('avances').select_related('meta') if proyecto else []
+        context['actividades'] = Actividad.objects.filter(meta__proyecto=proyecto).prefetch_related('avances') if proyecto else []
         context['meses'] = range(1, 13)
-
-        programacion_mensual = {}
-        actividades_programadas = {}
-        for actividad in context['actividades']:
-            programacion_mensual[actividad.id] = {}
-            avances = AvanceMensual.objects.filter(actividad=actividad, anio=proyecto.anio)
-            total_programado = 0
-            for avance in avances:
-                programacion_mensual[actividad.id][avance.mes] = avance.cantidad_programada_mes
-                total_programado += avance.cantidad_programada_mes
-            # Verificar si la actividad está completamente programada
-            actividades_programadas[actividad.id] = (total_programado == actividad.cantidad_programada)
-        
-        context['programacion_mensual'] = programacion_mensual
-        context['actividades_programadas'] = actividades_programadas
-        # Verificar si todas las actividades están completamente programadas
-        context['todas_actividades_programadas'] = all(actividades_programadas.values()) if actividades_programadas else False
-
+        # Cargar diccionarios de programación existente...
+        prog = {}
+        for act in context['actividades']:
+            prog[act.id] = {av.mes: av.cantidad_programada_mes for av in act.avances.all()}
+        context['programacion_mensual'] = prog
     elif paso_actual == 5:
-        context['metas'] = proyecto.metas.prefetch_related('actividades__avances').all() if proyecto else []
+        context['metas'] = proyecto.metas.prefetch_related('actividades').all() if proyecto else []
 
     return render(request, 'poa/crear_proyecto_wizard.html', context)
 

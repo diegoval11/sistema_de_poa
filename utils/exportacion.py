@@ -185,12 +185,17 @@ def generar_pdf_proyecto_detalle(proyecto, usuario):
                     prog_data = [['Mes', 'Prog.', 'Real.', '%', 'Estado']]
                     
                     for avance in actividad.avances.all().order_by('mes'):
-                        estado = 'Excelente' if avance.cumplimiento >= 90 else 'Bueno' if avance.cumplimiento >= 70 else 'Regular' if avance.cumplimiento >= 50 else 'Deficiente'
+                        # CORRECCIÓN: Manejar valores NULL en cumplimiento
+                        cumplimiento_val = avance.cumplimiento if avance.cumplimiento is not None else 0
+                        
+                        # Usar la variable auxiliar 'cumplimiento_val' para las comparaciones
+                        estado = 'Excelente' if cumplimiento_val >= 90 else 'Bueno' if cumplimiento_val >= 70 else 'Regular' if cumplimiento_val >= 50 else 'Deficiente'
+                        
                         prog_data.append([
                             avance.get_mes_display()[:3],
                             str(avance.cantidad_programada_mes),
                             str(avance.cantidad_realizada),
-                            f'{avance.cumplimiento:.0f}%',
+                            f'{cumplimiento_val:.0f}%', # Usar la variable auxiliar también aquí para evitar errores de formato
                             estado
                         ])
                     
@@ -441,19 +446,22 @@ def generar_excel_proyecto_detalle(proyecto, usuario):
                 
                 row += 1
                 
-                # Datos mensuales
+  # Datos mensuales
                 for avance in actividad.avances.all().order_by('mes'):
-                    estado = 'Excelente' if avance.cumplimiento >= 90 else 'Bueno' if avance.cumplimiento >= 70 else 'Regular' if avance.cumplimiento >= 50 else 'Deficiente'
+                    # CORRECCIÓN: Definir un valor por defecto (0) si el cumplimiento es None
+                    cumplimiento_val = avance.cumplimiento if avance.cumplimiento is not None else 0
+                    
+                    # Usar la variable auxiliar cumplimiento_val para las comparaciones
+                    estado = 'Excelente' if cumplimiento_val >= 90 else 'Bueno' if cumplimiento_val >= 70 else 'Regular' if cumplimiento_val >= 50 else 'Deficiente'
                     
                     ws_prog.cell(row=row, column=1, value=avance.get_mes_display()).border = border
                     ws_prog.cell(row=row, column=2, value=avance.cantidad_programada_mes).border = border
                     ws_prog.cell(row=row, column=3, value=avance.cantidad_realizada).border = border
-                    ws_prog.cell(row=row, column=4, value=f'{avance.cumplimiento}%').border = border
+                    # Usar la variable auxiliar también para la visualización
+                    ws_prog.cell(row=row, column=4, value=f'{cumplimiento_val}%').border = border
                     ws_prog.cell(row=row, column=5, value=estado).border = border
                     ws_prog.cell(row=row, column=6, value='Sí' if avance.es_no_planificada else 'No').border = border
                     row += 1
-                
-                row += 1
     
     ws_prog.column_dimensions['A'].width = 15
     ws_prog.column_dimensions['B'].width = 12

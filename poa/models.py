@@ -20,7 +20,7 @@ class Proyecto(models.Model):
         related_name='proyectos',
         limit_choices_to={'rol': 'UNIDAD'}
     )
-    nombre = models.CharField(max_length=200, verbose_name='Nombre del Proyecto')
+    nombre = models.CharField(max_length=200, verbose_name='Nombre del Proyecto', blank=True, null=True)
     objetivo_unidad = models.CharField(max_length=1000, verbose_name='Objetivo de la Unidad', blank=True)
     anio = models.IntegerField(
         default=2025, 
@@ -89,7 +89,7 @@ class Actividad(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(999999)]
     )
     es_cuantificable = models.BooleanField(default=True, verbose_name='Es Cuantificable')
-    medio_verificacion = models.CharField(max_length=500, blank=True, verbose_name='Medio de Verificación')
+    medio_verificacion = models.CharField(max_length=500, verbose_name='Medio de Verificación')
     recursos = models.CharField(max_length=500, blank=True, verbose_name='Recursos')
     total_recursos = models.DecimalField(
         max_digits=15,
