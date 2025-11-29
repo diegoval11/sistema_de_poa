@@ -1,0 +1,58 @@
+{% extends 'administrador/base_admin.html' %}
+
+{% block contenido %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-congress-blue-700">Gestión de Metas Predeterminadas</h1>
+        <a href="{% url 'administrador:crear_meta_predeterminada' %}" class="btn btn-primary">
+            <i class="fas fa-plus mr-2"></i> Nueva Meta
+        </a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for meta in metas %}
+                        <tr>
+                            <td class="font-medium">{{ meta.nombre }}</td>
+                            <td>
+                                {% if meta.activa %}
+                                <span class="badge badge-success">Activa</span>
+                                {% else %}
+                                <span class="badge badge-ghost">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <a href="{% url 'administrador:editar_meta_predeterminada' meta.id %}" class="btn btn-sm btn-info btn-square">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'administrador:eliminar_meta_predeterminada' meta.id %}" class="btn btn-sm btn-error btn-square" onclick="return confirm('¿Estás seguro de eliminar esta meta?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-gray-500">
+                                No hay metas predeterminadas registradas
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

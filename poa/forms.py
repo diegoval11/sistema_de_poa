@@ -205,6 +205,26 @@ class FormularioActividad(forms.ModelForm):
         return instance
 
 
+class FormularioActividadNoPlanificada(FormularioActividad):
+    """Formulario específico para actividades no planificadas"""
+    
+    def clean(self):
+        # Llamamos al clean del padre
+        cleaned_data = super().clean()
+            
+        # Si es cuantificable, en no planificadas NO requerimos cantidad programada > 0
+        # porque la cantidad programada es implícitamente 0 (no estaba en el plan)
+        
+        # Eliminamos el error de cantidad_programada si existe
+        if 'cantidad_programada' in self._errors:
+            del self._errors['cantidad_programada']
+            
+        # Forzamos cantidad_programada a 0
+        cleaned_data['cantidad_programada'] = 0
+            
+        return cleaned_data
+
+
 class FormularioAvanceMensual(forms.ModelForm):
     """Formulario para avance mensual"""
     

@@ -22,4 +22,5 @@ urlpatterns = [
     path('subir-evidencia-mes/', views.subir_evidencia_mes, name='subir_evidencia_mes'),
     
     path('evidencias-mes/<int:actividad_id>/<int:mes>/', views.obtener_evidencias_mes, name='obtener_evidencias_mes'),
+    path('crear-actividad-no-planificada/', views.crear_actividad_no_planificada, name='crear_actividad_no_planificada'),
 ]

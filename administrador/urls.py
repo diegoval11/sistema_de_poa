@@ -24,4 +24,19 @@ urlpatterns = [
     path('exportar/reporte-trimestral/excel/', 
          views.exportar_reporte_trimestral_excel, 
          name='exportar_reporte_trimestral_excel'),
+         
+    # Metas predeterminadas
+    path('metas-predeterminadas/', views.lista_metas_predeterminadas, name='lista_metas_predeterminadas'),
+    path('metas-predeterminadas/crear/', views.crear_meta_predeterminada, name='crear_meta_predeterminada'),
+    path('metas-predeterminadas/<int:meta_id>/editar/', views.editar_meta_predeterminada, name='editar_meta_predeterminada'),
+    path('metas-predeterminadas/<int:meta_id>/eliminar/', views.eliminar_meta_predeterminada, name='eliminar_meta_predeterminada'),
+    
+    # URLs para Objetivos Estratégicos
+    path('objetivos-estrategicos/', views.lista_objetivos_estrategicos, name='lista_objetivos_estrategicos'),
+    path('objetivos-estrategicos/crear/', views.crear_objetivo_estrategico, name='crear_objetivo_estrategico'),
+    path('objetivos-estrategicos/editar/<int:objetivo_id>/', views.editar_objetivo_estrategico, name='editar_objetivo_estrategico'),
+    path('objetivos-estrategicos/eliminar/<int:objetivo_id>/', views.eliminar_objetivo_estrategico, name='eliminar_objetivo_estrategico'),
+    
+    # URL para exportar proyectos a Excel
+    path('unidades/<int:unidad_id>/proyectos/exportar/', views.exportar_proyectos_unidad, name='exportar_proyectos_unidad'),
 ]

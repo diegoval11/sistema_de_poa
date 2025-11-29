@@ -1,0 +1,37 @@
+{% extends 'administrador/base_admin.html' %}
+
+{% block contenido %}
+<div class="max-w-2xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-6 text-congress-blue-700">
+                {% if meta %}Editar{% else %}Nueva{% endif %} Meta Predeterminada
+            </h2>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Nombre de la Meta</span>
+                    </label>
+                    <input type="text" name="nombre" value="{{ meta.nombre|default:'' }}"
+                        class="input input-bordered w-full" required>
+                </div>
+
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-4">
+                        <span class="label-text font-medium">Activa</span>
+                        <input type="checkbox" name="activa" class="checkbox checkbox-primary" {% if not meta or meta.activa %}checked{% endif %}>
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end mt-6">
+                    <a href="{% url 'administrador:lista_metas_predeterminadas' %}" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

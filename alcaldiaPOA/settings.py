@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'poa',  
     'administrador',
     'auditor',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

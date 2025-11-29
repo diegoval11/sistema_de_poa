@@ -43,6 +43,7 @@ def dashboard_admin(request):
         return redirect('login:login')
     
     # Estadísticas generales
+    total_unidades = Usuario.objects.filter(rol='UNIDAD').count()
     total_proyectos = Proyecto.objects.count()
     proyectos_aprobados = Proyecto.objects.filter(estado='APROBADO').count()
     proyectos_enviados = Proyecto.objects.filter(estado='ENVIADO').count()
@@ -52,11 +53,12 @@ def dashboard_admin(request):
     pendientes = Proyecto.objects.filter(estado='ENVIADO').select_related('unidad').order_by('-fecha_modificacion')
     
     context = {
+        'total_unidades': total_unidades,
         'total_proyectos': total_proyectos,
         'proyectos_aprobados': proyectos_aprobados,
-        'proyectos_enviados': proyectos_enviados,
+        'proyectos_pendientes': proyectos_enviados,
         'proyectos_borrador': proyectos_borrador,
-        'pendientes': pendientes,
+        'proyectos_revision': pendientes,
     }
     return render(request, 'administrador/dashboard.html', context)
 
@@ -222,17 +224,21 @@ def lista_unidades(request):
 @admin_required
 def proyectos_unidad(request, unidad_id):
     """Lista todos los proyectos de una unidad específica"""
+    from poa.models import ObjetivoEstrategico
     
     unidad = get_object_or_404(Usuario, id=unidad_id, rol='UNIDAD')
     proyectos = Proyecto.objects.filter(unidad=unidad).order_by('-anio', '-fecha_creacion')
+    objetivos_estrategicos = ObjetivoEstrategico.objects.filter(activa=True)
     
     contexto = {
         'titulo': f'Proyectos de {unidad.unidad.nombre}',
         'unidad': unidad,
         'proyectos': proyectos,
+        'objetivos_estrategicos': objetivos_estrategicos,
     }
     
     return render(request, 'administrador/proyectos_unidad.html', contexto)
+
 
 
 @admin_required
@@ -659,5 +665,170 @@ def exportar_reporte_trimestral_excel(request):
         datos_nuevos={'tipo': 'EXCEL_REPORTE_TRIMESTRAL', 'filtro': busqueda, 'total': len(unidades_trimestrales)},
         ip=request.META.get('REMOTE_ADDR')
     )
+    
+    return response
+
+
+@admin_required
+def lista_metas_predeterminadas(request):
+    """Lista las metas predeterminadas"""
+    from poa.models import MetaPredeterminada
+    metas = MetaPredeterminada.objects.all()
+    return render(request, 'administrador/lista_metas.html', {'metas': metas})
+
+@admin_required
+def crear_meta_predeterminada(request):
+    """Crea una nueva meta predeterminada"""
+    from poa.models import MetaPredeterminada
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        activa = request.POST.get('activa') == 'on'
+        
+        if nombre:
+            MetaPredeterminada.objects.create(nombre=nombre, activa=activa)
+            messages.success(request, 'Meta predeterminada creada exitosamente.')
+            return redirect('administrador:lista_metas_predeterminadas')
+            
+    return render(request, 'administrador/form_meta.html')
+
+@admin_required
+def editar_meta_predeterminada(request, meta_id):
+    """Edita una meta predeterminada existente"""
+    from poa.models import MetaPredeterminada
+    meta = get_object_or_404(MetaPredeterminada, id=meta_id)
+    
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        activa = request.POST.get('activa') == 'on'
+        
+        if nombre:
+            meta.nombre = nombre
+            meta.activa = activa
+            meta.save()
+            messages.success(request, 'Meta predeterminada actualizada exitosamente.')
+            return redirect('administrador:lista_metas_predeterminadas')
+            
+    return render(request, 'administrador/form_meta.html', {'meta': meta})
+
+@admin_required
+def eliminar_meta_predeterminada(request, meta_id):
+    """Elimina una meta predeterminada"""
+    from poa.models import MetaPredeterminada
+    meta = get_object_or_404(MetaPredeterminada, id=meta_id)
+    meta.delete()
+    messages.success(request, 'Meta predeterminada eliminada exitosamente.')
+    return redirect('administrador:lista_metas_predeterminadas')
+
+# --- Vistas para Objetivos Estratégicos ---
+
+@admin_required
+def lista_objetivos_estrategicos(request):
+    """Lista los objetivos estratégicos"""
+    from poa.models import ObjetivoEstrategico
+    objetivos = ObjetivoEstrategico.objects.all()
+    return render(request, 'administrador/lista_objetivos.html', {'objetivos': objetivos})
+
+@admin_required
+def crear_objetivo_estrategico(request):
+    """Crea un nuevo objetivo estratégico"""
+    from poa.models import ObjetivoEstrategico
+    
+    if request.method == 'POST':
+        descripcion = request.POST.get('descripcion')
+        activa = request.POST.get('activa') == 'on'
+        
+        if descripcion:
+            ObjetivoEstrategico.objects.create(
+                descripcion=descripcion,
+                activa=activa
+            )
+            messages.success(request, 'Objetivo estratégico creado correctamente.')
+            return redirect('administrador:lista_objetivos_estrategicos')
+        else:
+            messages.error(request, 'La descripción es obligatoria.')
+            
+    return render(request, 'administrador/form_objetivo.html')
+
+@admin_required
+def editar_objetivo_estrategico(request, objetivo_id):
+    """Edita un objetivo estratégico existente"""
+    from poa.models import ObjetivoEstrategico
+    objetivo = get_object_or_404(ObjetivoEstrategico, id=objetivo_id)
+    
+    if request.method == 'POST':
+        descripcion = request.POST.get('descripcion')
+        activa = request.POST.get('activa') == 'on'
+        
+        if descripcion:
+            objetivo.descripcion = descripcion
+            objetivo.activa = activa
+            objetivo.save()
+            messages.success(request, 'Objetivo estratégico actualizado correctamente.')
+            return redirect('administrador:lista_objetivos_estrategicos')
+        else:
+            messages.error(request, 'La descripción es obligatoria.')
+            
+    return render(request, 'administrador/form_objetivo.html', {'objetivo': objetivo})
+
+@admin_required
+def eliminar_objetivo_estrategico(request, objetivo_id):
+    """Elimina un objetivo estratégico"""
+    from poa.models import ObjetivoEstrategico
+    objetivo = get_object_or_404(ObjetivoEstrategico, id=objetivo_id)
+    
+    if request.method == 'POST':
+        objetivo.delete()
+        messages.success(request, 'Objetivo estratégico eliminado correctamente.')
+        return redirect('administrador:lista_objetivos_estrategicos')
+        
+    return render(request, 'administrador/confirmar_eliminar.html', {
+        'objeto': objetivo,
+        'tipo': 'Objetivo Estratégico',
+        'url_cancelar': 'administrador:lista_objetivos_estrategicos'
+    })
+
+@admin_required
+def exportar_proyectos_unidad(request, unidad_id):
+    """Exporta los proyectos de una unidad a Excel en formato POA"""
+    from poa.models import ObjetivoEstrategico
+    from .excel_export import generar_poa_excel
+    from io import BytesIO
+    
+    unidad_usuario = get_object_or_404(Usuario, id=unidad_id, rol='UNIDAD')
+    unidad = unidad_usuario.unidad
+    
+    # Obtener proyectos aprobados del año actual (excluyendo no planificados de la lista principal)
+    # La función generar_poa_excel se encargará de buscar el proyecto no planificado por separado
+    proyectos = Proyecto.objects.filter(
+        unidad=unidad_usuario, 
+        estado='APROBADO',
+        es_no_planificado=False
+    ).order_by('-anio', 'fecha_creacion')
+    
+    # Obtener el objetivo estratégico seleccionado
+    objetivo_id = request.GET.get('objetivo_estrategico')
+    objetivo_estrategico = None
+    if objetivo_id:
+        objetivo_estrategico = get_object_or_404(ObjetivoEstrategico, id=objetivo_id)
+    
+    # Obtener solo los proyectos APROBADOS de la unidad (excluyendo no planificados)
+    proyectos = Proyecto.objects.filter(
+        unidad=unidad_usuario,
+        estado='APROBADO',
+        es_no_planificado=False
+    ).prefetch_related('metas__actividades')
+    
+    # Generar el Excel
+    wb = generar_poa_excel(unidad, proyectos, objetivo_estrategico)
+    
+    # Preparar la respuesta HTTP
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f'POA_{unidad.nombre.replace(" ", "_")}_{datetime.now().year}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    # Guardar el workbook en la respuesta
+    wb.save(response)
     
     return response

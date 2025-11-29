@@ -1,0 +1,185 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block titulo %}Añadir Actividad No Planificada{% endblock %}
+
+{% block contenido %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'poa:lista_proyectos' %}" class="btn btn-ghost gap-2 pl-0 hover:bg-transparent">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Volver a la lista
+        </a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl text-congress-blue-800 mb-6">Añadir Actividad No Planificada</h2>
+
+            <div class="alert alert-info mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    class="stroke-current shrink-0 w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Esta actividad se registrará como "No Planificada" y aparecerá al final de sus reportes.</span>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Descripción -->
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-semibold">Descripción de la Actividad</span>
+                    </label>
+                    <textarea name="descripcion" class="textarea textarea-bordered h-24"
+                        placeholder="Describa la actividad no planificada..."
+                        required>{{ formulario.descripcion.value|default:'' }}</textarea>
+                    {% if formulario.descripcion.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario.descripcion.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+
+                <!-- Unidad de Medida -->
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-semibold">Unidad de Medida</span>
+                    </label>
+                    {{ formulario.unidad_medida_select }}
+                    {% if formulario.unidad_medida_select.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario.unidad_medida_select.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+
+                <!-- Unidad de Medida (Otro) -->
+                <div class="form-control w-full hidden" id="div_unidad_medida_otro">
+                    <label class="label">
+                        <span class="label-text font-semibold">Especifique Unidad de Medida</span>
+                    </label>
+                    <input type="text" name="unidad_medida_otro" id="id_unidad_medida_otro"
+                        class="input input-bordered w-full" placeholder="Especifique la unidad de medida..."
+                        value="{{ formulario.unidad_medida_otro.value|default:'' }}">
+                    {% if formulario.unidad_medida_otro.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario.unidad_medida_otro.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Medio de Verificación -->
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">Medio de Verificación</span>
+                        </label>
+                        <textarea name="medio_verificacion" class="textarea textarea-bordered" rows="2"
+                            placeholder="Medio de verificación..."
+                            required>{{ formulario.medio_verificacion.value|default:'' }}</textarea>
+                        {% if formulario.medio_verificacion.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ formulario.medio_verificacion.errors.0 }}</span>
+                        </label>
+                        {% endif %}
+                    </div>
+
+                    <!-- Recursos -->
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">Recursos Necesarios</span>
+                        </label>
+                        <textarea name="recursos" class="textarea textarea-bordered" rows="2"
+                            placeholder="Recursos necesarios...">{{ formulario.recursos.value|default:'' }}</textarea>
+                        {% if formulario.recursos.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ formulario.recursos.errors.0 }}</span>
+                        </label>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Total Recursos -->
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">Costo Estimado (Bs.)</span>
+                        </label>
+                        <input type="number" name="total_recursos" step="0.01" min="0" class="input input-bordered"
+                            placeholder="0.00" value="{{ formulario.total_recursos.value|default:'' }}" required>
+                        {% if formulario.total_recursos.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ formulario.total_recursos.errors.0 }}</span>
+                        </label>
+                        {% endif %}
+                    </div>
+
+                    <!-- Es Cuantificable -->
+                    <div class="form-control w-full">
+                        <label class="label cursor-pointer justify-start gap-4 mt-8">
+                            <span class="label-text font-semibold">¿Es Cuantificable?</span>
+                            <input type="checkbox" name="es_cuantificable" class="checkbox checkbox-primary" {% if formulario.es_cuantificable.value %}checked{% endif %}>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text font-semibold">Observaciones (Opcional)</span>
+                    </label>
+                    <textarea name="observaciones" class="textarea textarea-bordered" rows="2"
+                        placeholder="Observaciones...">{{ formulario.observaciones.value|default:'' }}</textarea>
+                </div>
+
+                <div class="card-actions justify-end mt-8">
+                    <a href="{% url 'poa:lista_proyectos' %}" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit"
+                        class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                        Guardar Actividad
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add classes to the select element
+    document.addEventListener('DOMContentLoaded', function () {
+        const select = document.getElementById('id_unidad_medida_select');
+        if (select) {
+            select.className = 'select select-bordered w-full';
+            select.setAttribute('onchange', 'toggleOtro(this)');
+            select.required = true;
+        }
+    });
+
+    function toggleOtro(select) {
+        const divOtro = document.getElementById('div_unidad_medida_otro');
+        const inputOtro = document.getElementById('id_unidad_medida_otro');
+
+        if (select.value === 'Otro') {
+            divOtro.classList.remove('hidden');
+            inputOtro.required = true;
+        } else {
+            divOtro.classList.add('hidden');
+            inputOtro.required = false;
+            inputOtro.value = '';
+        }
+    }
+
+    // Ejecutar al cargar por si hay datos previos (ej: error de validación)
+    document.addEventListener('DOMContentLoaded', function () {
+        const select = document.getElementById('id_unidad_medida_select');
+        if (select) {
+            toggleOtro(select);
+        }
+    });
+</script>
+{% endblock %}

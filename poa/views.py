@@ -5,7 +5,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
-from .models import Proyecto, MetaProyecto, Actividad, AvanceMensual, Evidencia
+from .models import Proyecto, MetaProyecto, Actividad, AvanceMensual, Evidencia, AuditoriaLog, MetaPredeterminada
 from .forms import FormularioProyecto, FormularioMeta, FormularioActividad, FormularioAvanceMensual, FormularioEvidencia
 import json
 
@@ -20,11 +20,20 @@ def lista_proyectos(request):
     Se eliminó la restricción de visualización única.
     """
     if request.user.rol == 'UNIDAD':
-        # Obtener todos los proyectos ordenados por año (desc) y fecha
-        proyectos = Proyecto.objects.filter(unidad__unidad=request.user.unidad).order_by('-anio', '-fecha_modificacion').prefetch_related('metas__actividades')
+        # Obtener todos los proyectos ordenados por año (desc) y fecha, excluyendo los no planificados
+        proyectos = Proyecto.objects.filter(unidad__unidad=request.user.unidad, es_no_planificado=False).order_by('-anio', '-fecha_modificacion').prefetch_related('metas__actividades')
+        
+        # Obtener el proyecto de actividades no planificadas del año actual
+        anio_actual = timezone.now().year
+        proyecto_no_planificado = Proyecto.objects.filter(
+            unidad=request.user,
+            anio=anio_actual,
+            es_no_planificado=True
+        ).prefetch_related('metas__actividades').first()
     else:
-        # Admin ve todo (aunque tiene su propio dashboard)
-        proyectos = Proyecto.objects.all().order_by('-anio').prefetch_related('metas__actividades')
+        # Admin ve todo (aunque tiene su propio dashboard), excluyendo los no planificados de la lista general
+        proyectos = Proyecto.objects.filter(es_no_planificado=False).order_by('-anio').prefetch_related('metas__actividades')
+        proyecto_no_planificado = None
     
     # Calcular totales para mostrar en las tarjetas
     for proyecto in proyectos:
@@ -46,6 +55,7 @@ def lista_proyectos(request):
 
     return render(request, 'poa/lista_proyectos.html', {
         'proyectos': proyectos,
+        'proyecto_no_planificado': proyecto_no_planificado,
     })
 
 @login_required
@@ -98,13 +108,31 @@ def crear_proyecto_wizard(request):
         # Paso 2: Metas
         elif paso_actual == 2:
             if accion == 'agregar_meta':
-                formulario = FormularioMeta(request.POST)
-                if formulario.is_valid():
-                    meta = formulario.save(commit=False)
-                    meta.proyecto = proyecto
-                    meta.save()
-                    messages.success(request, 'Meta agregada.')
-                    return redirect('poa:crear_proyecto_wizard')
+                # Lógica para metas predeterminadas
+                meta_seleccionada = request.POST.get('meta_seleccionada')
+                descripcion_custom = request.POST.get('descripcion')
+                
+                descripcion_final = ""
+                if meta_seleccionada == 'OTRO':
+                    descripcion_final = descripcion_custom
+                elif meta_seleccionada:
+                    descripcion_final = meta_seleccionada
+                
+                if descripcion_final:
+                    # Crear formulario con el dato procesado
+                    data = request.POST.copy()
+                    data['descripcion'] = descripcion_final
+                    formulario = FormularioMeta(data)
+                    
+                    if formulario.is_valid():
+                        meta = formulario.save(commit=False)
+                        meta.proyecto = proyecto
+                        meta.save()
+                        messages.success(request, 'Meta agregada.')
+                        return redirect('poa:crear_proyecto_wizard')
+                else:
+                    messages.error(request, 'Debe seleccionar una meta o escribir una descripción.')
+                    
             elif accion == 'siguiente':
                 if proyecto.metas.count() > 0:
                     request.session['wizard_paso'] = 3
@@ -124,6 +152,12 @@ def crear_proyecto_wizard(request):
                     meta = get_object_or_404(MetaProyecto, id=meta_id, proyecto=proyecto)
                     actividad = formulario.save(commit=False)
                     actividad.meta = meta
+                    
+                    # Asignar la unidad de medida desde cleaned_data
+                    # El formulario ya procesó si es "Otro" o una opción predeterminada
+                    if 'unidad_medida' in formulario.cleaned_data:
+                        actividad.unidad_medida = formulario.cleaned_data['unidad_medida']
+                    
                     actividad.save()
                     
                     for mes in range(1, 13):
@@ -131,6 +165,14 @@ def crear_proyecto_wizard(request):
                     
                     messages.success(request, 'Actividad agregada.')
                     return redirect('poa:crear_proyecto_wizard')
+                else:
+                    # Si hay errores, mostrarlos
+                    if not formulario.is_valid():
+                        for field, errors in formulario.errors.items():
+                            for error in errors:
+                                messages.error(request, f'{field}: {error}')
+                    if not meta_id:
+                        messages.error(request, 'No se especificó la meta.')
             elif accion == 'siguiente':
                 # Validación: todas las metas deben tener actividades
                 sin_actividades = [m.descripcion for m in proyecto.metas.all() if m.actividades.count() == 0]
@@ -165,8 +207,41 @@ def crear_proyecto_wizard(request):
                 return redirect('poa:crear_proyecto_wizard')
                 
             elif accion == 'finalizar':
-                request.session['wizard_paso'] = 5
-                return redirect('poa:crear_proyecto_wizard')
+                # Validación: verificar que todas las actividades cuantificables estén programadas correctamente
+                actividades = Actividad.objects.filter(meta__proyecto=proyecto)
+                actividades_sin_programar = []
+                actividades_incompletas = []
+                
+                for actividad in actividades:
+                    if actividad.es_cuantificable and actividad.cantidad_programada > 0:
+                        # Sumar la programación mensual
+                        suma_mensual = sum(
+                            av.cantidad_programada_mes 
+                            for av in actividad.avances.all()
+                        )
+                        
+                        # Verificar que la suma mensual sea mayor a 0
+                        if suma_mensual == 0:
+                            actividades_sin_programar.append(actividad.descripcion)
+                        # Verificar que la suma mensual sea exactamente igual a la cantidad programada
+                        elif suma_mensual != actividad.cantidad_programada:
+                            actividades_incompletas.append(
+                                f"{actividad.descripcion} ({suma_mensual}/{actividad.cantidad_programada})"
+                            )
+                
+                if actividades_sin_programar:
+                    messages.error(
+                        request, 
+                        f'Las siguientes actividades no han sido programadas: {", ".join(actividades_sin_programar[:3])}{"..." if len(actividades_sin_programar) > 3 else ""}. Por favor, programe todas las actividades antes de continuar.'
+                    )
+                elif actividades_incompletas:
+                    messages.error(
+                        request,
+                        f'Las siguientes actividades tienen programación incompleta: {", ".join(actividades_incompletas[:3])}{"..." if len(actividades_incompletas) > 3 else ""}. La suma de la programación mensual debe ser exactamente igual a la cantidad programada total.'
+                    )
+                else:
+                    request.session['wizard_paso'] = 5
+                    return redirect('poa:crear_proyecto_wizard')
             elif accion == 'anterior':
                 request.session['wizard_paso'] = 3
                 return redirect('poa:crear_proyecto_wizard')
@@ -188,6 +263,7 @@ def crear_proyecto_wizard(request):
     elif paso_actual == 2:
         context['formulario_meta'] = FormularioMeta()
         context['metas'] = proyecto.metas.all() if proyecto else []
+        context['metas_predeterminadas'] = MetaPredeterminada.objects.filter(activa=True)
     elif paso_actual == 3:
         context['metas'] = proyecto.metas.prefetch_related('actividades').all() if proyecto else []
         context['formulario_actividad'] = FormularioActividad()
@@ -719,3 +795,70 @@ def obtener_evidencias_mes(request, actividad_id, mes):
         })
     
     return JsonResponse({'evidencias': evidencias_data})
+
+@login_required
+def crear_actividad_no_planificada(request):
+    """
+    Vista para crear una actividad no planificada.
+    Crea automáticamente un proyecto 'ACTIVIDADES NO PLANIFICADAS' si no existe.
+    """
+    if request.user.rol != 'UNIDAD':
+        messages.error(request, 'Solo los usuarios de unidad pueden crear actividades no planificadas.')
+        return redirect('poa:lista_proyectos')
+        
+    anio_actual = timezone.now().year
+    
+    # Buscar o crear el proyecto contenedor de no planificadas
+    proyecto, created = Proyecto.objects.get_or_create(
+        unidad=request.user,
+        anio=anio_actual,
+        es_no_planificado=True,
+        defaults={
+            'nombre': f'ACTIVIDADES NO PLANIFICADAS {anio_actual}',
+            'objetivo_unidad': 'Registro de actividades no contempladas en el POA inicial',
+            'estado': 'APROBADO', # Ya nace aprobado para que salga en reportes
+            'fecha_aprobacion': timezone.now()
+        }
+    )
+    
+    # Asegurar que tenga al menos una meta genérica
+    meta = proyecto.metas.first()
+    if not meta:
+        meta = MetaProyecto.objects.create(
+            proyecto=proyecto,
+            descripcion='Actividades Emergentes y No Planificadas'
+        )
+    
+    if request.method == 'POST':
+        from .forms import FormularioActividadNoPlanificada
+        formulario = FormularioActividadNoPlanificada(request.POST)
+        if formulario.is_valid():
+            actividad = formulario.save(commit=False)
+            actividad.meta = meta
+            actividad.cantidad_programada = 0 # No tiene programación inicial
+            
+            # Si el usuario ingresó una unidad de medida custom
+            if 'unidad_medida' in formulario.cleaned_data:
+                actividad.unidad_medida = formulario.cleaned_data['unidad_medida']
+                
+            actividad.save()
+            
+            # Crear avances mensuales vacíos
+            for mes in range(1, 13):
+                AvanceMensual.objects.create(
+                    actividad=actividad, 
+                    mes=mes, 
+                    anio=anio_actual,
+                    es_no_planificada=True # Marcar todos los avances como no planificados por defecto
+                )
+                
+            messages.success(request, 'Actividad no planificada registrada exitosamente.')
+            return redirect('poa:lista_proyectos')
+    else:
+        from .forms import FormularioActividadNoPlanificada
+        formulario = FormularioActividadNoPlanificada()
+        
+    return render(request, 'poa/crear_actividad_no_planificada.html', {
+        'formulario': formulario,
+        'proyecto': proyecto
+    })

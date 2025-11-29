@@ -10,8 +10,10 @@
             <p class="text-base-content/70 mt-1">Gestión de Planes Operativos Anuales</p>
         </div>
         {% if request.user.rol == 'UNIDAD' %}
-        <a href="{% url 'poa:crear_proyecto_wizard' %}" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="{% url 'poa:crear_proyecto_wizard' %}"
+            class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Crear Nuevo Proyecto
@@ -29,93 +31,106 @@
                         <div class="flex items-start gap-3 mb-2 min-w-0 overflow-hidden">
                             <div class="min-w-0 flex-1 overflow-hidden">
                                 <div class="tooltip tooltip-right w-full" data-tip="{{ proyecto.nombre }}">
-                                    <h2 class="card-title text-congress-blue-700 truncate w-full max-w-full overflow-hidden" style="word-break: break-all;">
+                                    <h2 class="card-title text-congress-blue-700 truncate w-full max-w-full overflow-hidden"
+                                        style="word-break: break-all;">
                                         {{ proyecto.nombre }}
                                     </h2>
                                 </div>
                             </div>
                             <div class="flex-shrink-0">
                                 {% if proyecto.estado == 'BORRADOR' %}
-                                    <span class="badge badge-ghost badge-lg whitespace-nowrap">Borrador</span>
+                                <span class="badge badge-ghost badge-lg whitespace-nowrap">Borrador</span>
                                 {% elif proyecto.estado == 'ENVIADO' %}
-                                    <span class="badge badge-info badge-lg whitespace-nowrap">Enviado</span>
+                                <span class="badge badge-info badge-lg whitespace-nowrap">Enviado</span>
                                 {% elif proyecto.estado == 'APROBADO' %}
-                                    <span class="badge badge-success badge-lg whitespace-nowrap">Aprobado</span>
+                                <span class="badge badge-success badge-lg whitespace-nowrap">Aprobado</span>
                                 {% elif proyecto.estado == 'RECHAZADO' %}
-                                    <span class="badge badge-error badge-lg whitespace-nowrap">Rechazado</span>
+                                <span class="badge badge-error badge-lg whitespace-nowrap">Rechazado</span>
                                 {% endif %}
                             </div>
                         </div>
                         <p class="text-sm text-base-content/70 break-words overflow-hidden">
-                            <span class="font-semibold">Unidad:</span> {{ proyecto.unidad.unidad.nombre }} | 
+                            <span class="font-semibold">Unidad:</span> {{ proyecto.unidad.unidad.nombre }} |
                             <span class="font-semibold">Año:</span> {{ proyecto.anio }}
                         </p>
-                 {% if proyecto.objetivo_unidad %}
-                {# Establece un límite de caracteres. Puedes ajustar el número 150. #}
-                {% if proyecto.objetivo_unidad|length > 150 %}
-                    <div class="collapse collapse-arrow bg-base-200 mt-2 overflow-hidden">
-                        <input type="checkbox" />
-                        <div class="collapse-title text-sm py-2 min-h-0 line-clamp-2 overflow-hidden break-words">
-                            {{ proyecto.objetivo_unidad }}
+                        {% if proyecto.objetivo_unidad %}
+                        {# Establece un límite de caracteres. Puedes ajustar el número 150. #}
+                        {% if proyecto.objetivo_unidad|length > 150 %}
+                        <div class="collapse collapse-arrow bg-base-200 mt-2 overflow-hidden">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm py-2 min-h-0 line-clamp-2 overflow-hidden break-words">
+                                {{ proyecto.objetivo_unidad }}
+                            </div>
+                            <div class="collapse-content">
+                                <p class="text-sm break-words">{{ proyecto.objetivo_unidad }}</p>
+                            </div>
                         </div>
-                        <div class="collapse-content">
-                            <p class="text-sm break-words">{{ proyecto.objetivo_unidad }}</p>
-                        </div>
-                    </div>
-                {% else %}
-                    <p class="text-sm mt-2 break-words">{{ proyecto.objetivo_unidad }}</p>
-                {% endif %}
-            {% endif %}
-                        
+                        {% else %}
+                        <p class="text-sm mt-2 break-words">{{ proyecto.objetivo_unidad }}</p>
+                        {% endif %}
+                        {% endif %}
+
                         <div class="flex gap-4 mt-3 flex-wrap">
                             <div class="badge badge-outline">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                 </svg>
                                 {{ proyecto.metas.count }} Meta{{ proyecto.metas.count|pluralize }}
                             </div>
                             <div class="badge badge-outline">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                 </svg>
-                                {{ proyecto.total_actividades }} Actividad{{ proyecto.total_actividades|pluralize:"es" }}
+                                {{ proyecto.total_actividades }} Actividad{{ proyecto.total_actividades|pluralize:"es"
+                                }}
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="flex flex-col gap-2 items-end flex-shrink-0">
                         {% if request.user.rol == 'UNIDAD' and proyecto.unidad == request.user and proyecto.estado == 'BORRADOR' %}
-                        <button onclick="confirmarEnvio{{ proyecto.id }}()" class="btn btn-md bg-congress-blue-600 hover:bg-congress-blue-700 text-white border-0 gap-2 flex-shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        <button onclick="confirmarEnvio{{ proyecto.id }}()"
+                            class="btn btn-md bg-congress-blue-600 hover:bg-congress-blue-700 text-white border-0 gap-2 flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                             </svg>
                             ENVIAR
                         </button>
                         {% endif %}
-                        
+
                         <div class="dropdown dropdown-end">
                             <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                 </svg>
                             </div>
-                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                            <ul tabindex="0"
+                                class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                 {% if proyecto.estado == 'BORRADOR' or proyecto.estado == 'RECHAZADO' %}
-                                    <li><a href="{% url 'poa:editar_proyecto' proyecto.id %}">Editar Proyecto</a></li>
+                                <li><a href="{% url 'poa:editar_proyecto' proyecto.id %}">Editar Proyecto</a></li>
                                 {% endif %}
 
                                 <li><a href="{% url 'poa:detalle_proyecto' proyecto.id %}">Ver Detalle</a></li>
 
                                 {% if proyecto.estado == 'APROBADO' %}
-                                    <li><a href="{% url 'poa:gestionar_avances' proyecto.id %}" class="text-success font-bold">Gestionar Avances</a></li>
-                                    <li><a href="{% url 'poa:ver_reportes' proyecto.id %}">Ver Reportes</a></li>
+                                <li><a href="{% url 'poa:gestionar_avances' proyecto.id %}"
+                                        class="text-success font-bold">Gestionar Avances</a></li>
+                                <li><a href="{% url 'poa:ver_reportes' proyecto.id %}">Ver Reportes</a></li>
                                 {% endif %}
-                                
+
                                 {% if request.user.rol == 'UNIDAD' and proyecto.unidad == request.user and proyecto.estado == 'BORRADOR' %}
                                 <li>
-                                    <a href="{% url 'poa:eliminar_proyecto' proyecto.id %}" 
-                                       onclick="return confirm('¿Está seguro de eliminar este proyecto?')"
-                                       class="text-error">
+                                    <a href="{% url 'poa:eliminar_proyecto' proyecto.id %}"
+                                        onclick="return confirm('¿Está seguro de eliminar este proyecto?')"
+                                        class="text-error">
                                         Eliminar
                                     </a>
                                 </li>
@@ -124,47 +139,56 @@
                         </div>
                     </div>
                 </div>
-                
+
                 {% if request.user.rol == 'UNIDAD' and proyecto.unidad == request.user %}
-                    {% if proyecto.estado == 'BORRADOR' %}
-                    <div class="alert alert-info mt-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span>Este proyecto está en borrador. Haz clic en "ENVIAR" cuando esté listo.</span>
-                    </div>
-                    {% elif proyecto.estado == 'ENVIADO' %}
-                    <div class="alert alert-warning mt-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                        </svg>
-                        <span>Este proyecto está esperando revisión del administrador.</span>
-                    </div>
-                    {% elif proyecto.estado == 'APROBADO' %}
-                    <div class="alert alert-success mt-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span>Este proyecto ha sido aprobado por el administrador.</span>
-                    </div>
-                    {% elif proyecto.estado == 'RECHAZADO' %}
-                    <div class="alert alert-error mt-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <div class="flex-1">
-                            <h3 class="font-bold text-lg">Proyecto Rechazado</h3>
-                            <div class="text-sm mt-2">
-                                <p class="font-semibold">Motivo del rechazo:</p>
-                                <p class="mt-1">{{ proyecto.motivo_rechazo|default:"No se especificó un motivo." }}</p>
-                            </div>
+                {% if proyecto.estado == 'BORRADOR' %}
+                <div class="alert alert-info mt-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Este proyecto está en borrador. Haz clic en "ENVIAR" cuando esté listo.</span>
+                </div>
+                {% elif proyecto.estado == 'ENVIADO' %}
+                <div class="alert alert-warning mt-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                    <span>Este proyecto está esperando revisión del administrador.</span>
+                </div>
+                {% elif proyecto.estado == 'APROBADO' %}
+                <div class="alert alert-success mt-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Este proyecto ha sido aprobado por el administrador.</span>
+                </div>
+                {% elif proyecto.estado == 'RECHAZADO' %}
+                <div class="alert alert-error mt-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-lg">Proyecto Rechazado</h3>
+                        <div class="text-sm mt-2">
+                            <p class="font-semibold">Motivo del rechazo:</p>
+                            <p class="mt-1">{{ proyecto.motivo_rechazo|default:"No se especificó un motivo." }}</p>
                         </div>
                     </div>
-                    {% endif %}
+                </div>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
-        
+
         <dialog id="modalEnvio{{ proyecto.id }}" class="modal">
             <div class="modal-box max-w-md">
                 <h3 class="font-bold text-lg text-congress-blue-700 mb-4">Confirmar Envío</h3>
@@ -180,7 +204,8 @@
                     </form>
                     <form method="POST" action="{% url 'poa:enviar_proyecto' proyecto.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn bg-congress-blue-600 hover:bg-congress-blue-700 text-white border-0">
+                        <button type="submit"
+                            class="btn bg-congress-blue-600 hover:bg-congress-blue-700 text-white border-0">
                             Confirmar
                         </button>
                     </form>
@@ -190,7 +215,7 @@
                 <button>close</button>
             </form>
         </dialog>
-        
+
         <script>
             function confirmarEnvio{{ proyecto.id }}() {
                 document.getElementById('modalEnvio{{ proyecto.id }}').showModal();
@@ -201,17 +226,69 @@
     {% else %}
     <div class="card bg-base-100 shadow-md">
         <div class="card-body text-center py-12">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-base-content/30" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <h3 class="text-xl font-semibold mt-4">No hay proyectos registrados</h3>
             <p class="text-base-content/70 mt-2">Comience creando su primer proyecto POA</p>
             {% if request.user.rol == 'UNIDAD' %}
-            <a href="{% url 'poa:crear_proyecto_wizard' %}" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 mt-4">
+            <a href="{% url 'poa:crear_proyecto_wizard' %}"
+                class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 mt-4">
                 Crear Proyecto
             </a>
             {% endif %}
         </div>
+    </div>
+    {% endif %}
+
+    {# Sección de Actividades No Planificadas #}
+    {% if proyecto_no_planificado and request.user.rol == 'UNIDAD' %}
+    <div class="mt-8">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-amber-700">Actividades No Planificadas</h2>
+                <p class="text-base-content/70 mt-1">Actividades emergentes del año {{ proyecto_no_planificado.anio }}
+                </p>
+            </div>
+            <a href="{% url 'poa:crear_actividad_no_planificada' %}"
+                class="btn btn-sm bg-amber-600 hover:bg-amber-700 text-white border-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Nueva Actividad
+            </a>
+        </div>
+
+        {% for meta in proyecto_no_planificado.metas.all %}
+        {% for actividad in meta.actividades.all %}
+        <div class="card bg-amber-50 border-l-4 border-amber-500 shadow-sm hover:shadow-md transition-shadow mb-3">
+            <div class="card-body py-3 px-4">
+                <div class="grid grid-cols-[1fr_auto] gap-4 items-center">
+                    <div class="min-w-0 overflow-hidden">
+                        <div class="flex items-center gap-3">
+                            <div class="badge badge-warning badge-sm">No Planificada</div>
+                            <h3 class="text-base font-semibold text-amber-900 truncate">{{ actividad.descripcion }}</h3>
+                        </div>
+                        <div class="flex gap-4 mt-2 text-sm text-base-content/70">
+                            <span><strong>Unidad:</strong> {{ actividad.unidad_medida }}</span>
+                            <span><strong>Medio de Verificación:</strong> {{ actividad.medio_verificacion }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 items-center flex-shrink-0">
+                        <a href="{% url 'poa:gestionar_avances' proyecto_no_planificado.id %}"
+                            class="btn btn-xs bg-amber-600 hover:bg-amber-700 text-white border-0">
+                            Gestionar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endfor %}
     </div>
     {% endif %}
 </div>

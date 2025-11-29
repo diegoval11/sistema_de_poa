@@ -12,19 +12,24 @@
 
     <div class="mb-8">
         <ul class="steps steps-horizontal w-full">
-            <li class="step {% if paso_actual >= 1 %}step-primary{% endif %}" data-content="{% if paso_actual > 1 %}✓{% else %}1{% endif %}">
+            <li class="step {% if paso_actual >= 1 %}step-primary{% endif %}"
+                data-content="{% if paso_actual > 1 %}✓{% else %}1{% endif %}">
                 <span class="hidden sm:inline">Información</span>
             </li>
-            <li class="step {% if paso_actual >= 2 %}step-primary{% endif %}" data-content="{% if paso_actual > 2 %}✓{% else %}2{% endif %}">
+            <li class="step {% if paso_actual >= 2 %}step-primary{% endif %}"
+                data-content="{% if paso_actual > 2 %}✓{% else %}2{% endif %}">
                 <span class="hidden sm:inline">Metas</span>
             </li>
-            <li class="step {% if paso_actual >= 3 %}step-primary{% endif %}" data-content="{% if paso_actual > 3 %}✓{% else %}3{% endif %}">
+            <li class="step {% if paso_actual >= 3 %}step-primary{% endif %}"
+                data-content="{% if paso_actual > 3 %}✓{% else %}3{% endif %}">
                 <span class="hidden sm:inline">Actividades</span>
             </li>
-            <li class="step {% if paso_actual >= 4 %}step-primary{% endif %}" data-content="{% if paso_actual > 4 %}✓{% else %}4{% endif %}">
+            <li class="step {% if paso_actual >= 4 %}step-primary{% endif %}"
+                data-content="{% if paso_actual > 4 %}✓{% else %}4{% endif %}">
                 <span class="hidden sm:inline">Programación</span>
             </li>
-            <li class="step {% if paso_actual >= 5 %}step-primary{% endif %}" data-content="{% if paso_actual > 5 %}✓{% else %}5{% endif %}">
+            <li class="step {% if paso_actual >= 5 %}step-primary{% endif %}"
+                data-content="{% if paso_actual > 5 %}✓{% else %}5{% endif %}">
                 <span class="hidden sm:inline">Revisión</span>
             </li>
         </ul>
@@ -37,19 +42,21 @@
             <form method="post" class="space-y-4">
                 {% csrf_token %}
                 <input type="hidden" name="accion" value="siguiente">
-                
-              <div class="form-control">
+
+                <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-semibold">{{ formulario_proyecto.nombre.label }} <span class="text-xs font-normal text-gray-500">(Opcional)</span></span>
+                        <span class="label-text font-semibold">{{ formulario_proyecto.nombre.label }} <span
+                                class="text-xs font-normal text-gray-500">(Opcional)</span></span>
                         <span class="label-text-alt text-base-content/60">
                             <span id="nombre-count">0</span>/200
                         </span>
                     </label>
-                    <input type="text" name="nombre" maxlength="200" class="input input-bordered w-full" 
-                           value="{{ formulario_proyecto.nombre.value|default:'' }}" 
-                           id="nombre-input">
+                    <input type="text" name="nombre" maxlength="200" class="input input-bordered w-full"
+                        value="{{ formulario_proyecto.nombre.value|default:'' }}" id="nombre-input">
                     {% if formulario_proyecto.nombre.errors %}
                     <label class="label">
+                        <span class="label-text-alt text-error">{{ formulario_proyecto.nombre.errors.0 }}</span>
+                    </label>
                     {% endif %}
                 </div>
 
@@ -73,9 +80,8 @@
                             <span id="objetivo-count">0</span>/1000
                         </span>
                     </label>
-                    <textarea name="objetivo_unidad" maxlength="1000" rows="4" 
-                              class="textarea textarea-bordered w-full" 
-                              id="objetivo-input">{{ formulario_proyecto.objetivo_unidad.value|default:'' }}</textarea>
+                    <textarea name="objetivo_unidad" maxlength="1000" rows="4" class="textarea textarea-bordered w-full"
+                        id="objetivo-input">{{ formulario_proyecto.objetivo_unidad.value|default:'' }}</textarea>
                     {% if formulario_proyecto.objetivo_unidad.errors %}
                     <label class="label">
                         <span class="label-text-alt text-error">{{ formulario_proyecto.objetivo_unidad.errors.0 }}</span>
@@ -85,9 +91,11 @@
 
                 <div class="card-actions justify-between mt-6">
                     <a href="{% url 'poa:cancelar_wizard' %}?eliminar=1" class="btn btn-ghost">Cancelar</a>
-                    <button type="submit" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                    <button type="submit"
+                        class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
                         Siguiente
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
@@ -101,22 +109,57 @@
             <form method="post" class="mb-6 p-4 bg-base-200 rounded-lg">
                 {% csrf_token %}
                 <input type="hidden" name="accion" value="agregar_meta">
-                
+
                 <div class="form-control">
                     <label class="label">
+                        <span class="label-text font-semibold">Seleccione una Meta</span>
+                    </label>
+                    <select name="meta_seleccionada" id="meta-select" class="select select-bordered w-full" required>
+                        <option value="" disabled selected>-- Seleccione una meta --</option>
+                        {% for meta_pre in metas_predeterminadas %}
+                        <option value="{{ meta_pre.nombre }}">{{ meta_pre.nombre }}</option>
+                        {% endfor %}
+                        <option value="OTRO">OTRO (Escribir personalizada)</option>
+                    </select>
+                </div>
+
+                <div class="form-control mt-4" id="campo-meta-custom" style="display: none;">
+                    <label class="label">
                         <span class="label-text font-semibold">{{ formulario_meta.descripcion.label }}</span>
-                        <!-- Agregando contador de caracteres -->
                         <span class="label-text-alt text-base-content/60">
                             <span id="meta-count">0</span>/500
                         </span>
                     </label>
-                    <textarea name="descripcion" maxlength="500" rows="3" 
-                              class="textarea textarea-bordered w-full" 
-                              id="meta-input" required></textarea>
+                    <textarea name="descripcion" maxlength="500" rows="3" class="textarea textarea-bordered w-full"
+                        id="meta-input" placeholder="Escriba su meta personalizada aquí..."></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 mt-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const metaSelect = document.getElementById('meta-select');
+                        const campoCustom = document.getElementById('campo-meta-custom');
+                        const metaInput = document.getElementById('meta-input');
+
+                        if (metaSelect && campoCustom && metaInput) {
+                            metaSelect.addEventListener('change', function () {
+                                if (this.value === 'OTRO') {
+                                    campoCustom.style.display = 'block';
+                                    metaInput.required = true;
+                                    metaInput.focus();
+                                } else {
+                                    campoCustom.style.display = 'none';
+                                    metaInput.required = false;
+                                    metaInput.value = ''; // Limpiar si se oculta
+                                }
+                            });
+                        }
+                    });
+                </script>
+
+                <button type="submit"
+                    class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 mt-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Agregar Meta
@@ -132,9 +175,12 @@
                     <p class="flex-1">{{ meta.descripcion }}</p>
                     <form method="post" action="{% url 'poa:eliminar_meta' meta.id %}?wizard=1" class="inline">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-ghost btn-xs text-error" onclick="return confirm('¿Eliminar esta meta?')">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <button type="submit" class="btn btn-ghost btn-xs text-error"
+                            onclick="return confirm('¿Eliminar esta meta?')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </form>
@@ -143,26 +189,31 @@
             </div>
             {% else %}
             <div class="alert alert-warning mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <span>Debe agregar al menos una meta para continuar</span>
             </div>
             {% endif %}
 
-              
+
             <form method="post">
                 {% csrf_token %}
                 <div class="card-actions justify-between mt-6">
                     <button type="submit" name="accion" value="anterior" class="btn btn-ghost">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                         Anterior
                     </button>
-                    <button type="submit" name="accion" value="siguiente" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0" {% if not metas %}disabled{% endif %}>
+                    <button type="submit" name="accion" value="siguiente"
+                        class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0" {% if not metas %}disabled{% endif %}>
                         Siguiente
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
@@ -181,12 +232,13 @@
                     <div class="tooltip tooltip-right w-full" data-tip="{{ meta.descripcion }}">
                         <h3 class="font-semibold text-congress-blue-700 mb-3 line-clamp-2">{{ meta.descripcion }}</h3>
                     </div>
-                    
-                    <form method="post" class="mb-4 p-4 bg-base-200 rounded-lg space-y-3" id="form-actividad-{{ meta.id }}">
+
+                    <form method="post" class="mb-4 p-4 bg-base-200 rounded-lg space-y-3"
+                        id="form-actividad-{{ meta.id }}">
                         {% csrf_token %}
                         <input type="hidden" name="accion" value="agregar_actividad">
                         <input type="hidden" name="meta_id" value="{{ meta.id }}">
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div class="form-control md:col-span-2">
                                 <label class="label">
@@ -196,16 +248,18 @@
                                         <span id="actividad-count-{{ meta.id }}">0</span>/500
                                     </span>
                                 </label>
-                                <textarea name="descripcion" maxlength="500" rows="2" 
-                                          class="textarea textarea-bordered w-full actividad-descripcion-input" 
-                                          data-meta="{{ meta.id }}" required></textarea>
+                                <textarea name="descripcion" maxlength="500" rows="2"
+                                    class="textarea textarea-bordered w-full actividad-descripcion-input"
+                                    data-meta="{{ meta.id }}" required></textarea>
                             </div>
 
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text font-semibold">{{ formulario_actividad.unidad_medida_select.label }}</span>
                                 </label>
-                                <select name="unidad_medida_select" id="id_unidad_medida_select_{{ meta.id }}" class="select select-bordered w-full unidad-medida-select" data-meta="{{ meta.id }}">
+                                <select name="unidad_medida_select" id="id_unidad_medida_select_{{ meta.id }}"
+                                    class="select select-bordered w-full unidad-medida-select"
+                                    data-meta="{{ meta.id }}">
                                     <option value="">---------</option>
                                     <option value="Unidad">Unidad</option>
                                     <option value="Porcentaje">Porcentaje</option>
@@ -218,15 +272,15 @@
                             </div>
 
                             <!-- Campo "Otro" para unidad de medida personalizada -->
-                            <div class="form-control campo-unidad-otro campo-unidad-otro-{{ meta.id }}" style="display: none;">
+                            <div class="form-control campo-unidad-otro campo-unidad-otro-{{ meta.id }}"
+                                style="display: none;">
                                 <label class="label">
                                     <span class="label-text font-semibold">{{ formulario_actividad.unidad_medida_otro.label }}</span>
                                 </label>
                                 <!-- Agregando maxlength a unidad de medida personalizada -->
-                                <input type="text" name="unidad_medida_otro" maxlength="80" 
-                                       id="id_unidad_medida_otro_{{ meta.id }}" 
-                                       class="input input-bordered w-full" 
-                                       placeholder="Especifique la unidad de medida">
+                                <input type="text" name="unidad_medida_otro" maxlength="80"
+                                    id="id_unidad_medida_otro_{{ meta.id }}" class="input input-bordered w-full"
+                                    placeholder="Especifique la unidad de medida">
                             </div>
 
                             <div class="form-control">
@@ -241,14 +295,16 @@
                                 <label class="label">
                                     <span class="label-text font-semibold">{{ formulario_actividad.cantidad_programada.label }}</span>
                                 </label>
-                                <input type="number" name="cantidad_programada" min="0" max="999999" class="input input-bordered w-full" value="0">
+                                <input type="number" name="cantidad_programada" min="0" max="999999"
+                                    class="input input-bordered w-full" value="0">
                             </div>
 
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text font-semibold">{{ formulario_actividad.total_recursos.label }}</span>
                                 </label>
-                                <input type="number" name="total_recursos" min="0" max="99999999.99" step="0.01" class="input input-bordered w-full" value="0">
+                                <input type="number" name="total_recursos" min="0" max="99999999.99" step="0.01"
+                                    class="input input-bordered w-full" value="0">
                             </div>
 
                             <div class="form-control md:col-span-2">
@@ -259,10 +315,10 @@
                                         <span id="medio-count-{{ meta.id }}">0</span>/500
                                     </span>
                                 </label>
-                                <textarea name="medio_verificacion" maxlength="500" rows="2" 
-                                          class="textarea textarea-bordered w-full medio-verificacion-input" 
-                                    data-meta="{{ meta.id }}" required></textarea>     
-                                                       </div>
+                                <textarea name="medio_verificacion" maxlength="500" rows="2"
+                                    class="textarea textarea-bordered w-full medio-verificacion-input"
+                                    data-meta="{{ meta.id }}" required></textarea>
+                            </div>
 
                             <div class="form-control md:col-span-2">
                                 <label class="label">
@@ -272,15 +328,18 @@
                                         <span id="recursos-count-{{ meta.id }}">0</span>/500
                                     </span>
                                 </label>
-                                <textarea name="recursos" maxlength="500" rows="2" 
-                                          class="textarea textarea-bordered w-full recursos-input" 
-                                          data-meta="{{ meta.id }}"></textarea>
+                                <textarea name="recursos" maxlength="500" rows="2"
+                                    class="textarea textarea-bordered w-full recursos-input"
+                                    data-meta="{{ meta.id }}"></textarea>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        <button type="submit"
+                            class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4" />
                             </svg>
                             Agregar Actividad
                         </button>
@@ -299,11 +358,15 @@
                                         <p class="font-medium line-clamp-2">{{ actividad.descripcion }}</p>
                                     </div>
                                 </div>
-                                <form method="post" action="{% url 'poa:eliminar_actividad' actividad.id %}?wizard=1" class="inline">
+                                <form method="post" action="{% url 'poa:eliminar_actividad' actividad.id %}?wizard=1"
+                                    class="inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-ghost btn-xs text-error" onclick="return confirm('¿Eliminar esta actividad?')">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    <button type="submit" class="btn btn-ghost btn-xs text-error"
+                                        onclick="return confirm('¿Eliminar esta actividad?')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
                                 </form>
@@ -313,8 +376,10 @@
                     </div>
                     {% else %}
                     <div class="alert alert-info">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span>No hay actividades agregadas para esta meta</span>
                     </div>
@@ -327,14 +392,17 @@
                 {% csrf_token %}
                 <div class="card-actions justify-between mt-6">
                     <button type="submit" name="accion" value="anterior" class="btn btn-ghost">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                         Anterior
                     </button>
-                    <button type="submit" name="accion" value="siguiente" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                    <button type="submit" name="accion" value="siguiente"
+                        class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
                         Siguiente
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
@@ -347,7 +415,7 @@
 
             {% for actividad in actividades %}
             <div class="collapse collapse-arrow bg-base-200 mb-3">
-                <input type="checkbox" /> 
+                <input type="checkbox" />
                 <div class="collapse-title font-medium">
                     <div class="flex items-center gap-2">
                         <span class="badge badge-primary bg-congress-blue-600 border-0">{{ forloop.counter }}</span>
@@ -356,32 +424,36 @@
                         <span class="text-sm text-base-content/70">({{ actividad.unidad_medida }} - Total: {{ actividad.cantidad_programada }})</span>
                     </div>
                 </div>
-                <div class="collapse-content"> 
+                <div class="collapse-content">
                     <form method="post" class="mt-3" id="form-programacion-{{ actividad.id }}">
                         {% csrf_token %}
                         <input type="hidden" name="accion" value="guardar_programacion">
                         <input type="hidden" name="actividad_id" value="{{ actividad.id }}">
-                        
+
                         <div class="flex gap-3 mb-4">
                             <div class="form-control flex-1">
                                 <label class="label">
                                     <span class="label-text font-semibold">Total a Programar</span>
                                 </label>
-                                <input type="number" id="total-{{ actividad.id }}" value="{{ actividad.cantidad_programada }}" class="input input-bordered" readonly>
+                                <input type="number" id="total-{{ actividad.id }}"
+                                    value="{{ actividad.cantidad_programada }}" class="input input-bordered" readonly>
                             </div>
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">&nbsp;</span>
                                 </label>
-                                <button type="button" class="btn btn-outline btn-primary" onclick="repartirUniformemente({{ actividad.id }}, {{ actividad.cantidad_programada }})">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                <button type="button" class="btn btn-outline btn-primary"
+                                    onclick="repartirUniformemente({{ actividad.id }}, {{ actividad.cantidad_programada }})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
                                     Repartir Uniformemente
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div class="overflow-x-auto">
                             <table class="table table-sm table-zebra">
                                 <thead>
@@ -398,10 +470,10 @@
                                         </td>
                                         <td>
                                             <!-- Cargar valores guardados de programación mensual -->
-                                            <input type="number" name="mes_{{ mes }}" min="0" max="999999" 
-                                                   value="{% if programacion_mensual %}{{ programacion_mensual|get_item:actividad.id|get_item:mes|default:0 }}{% else %}0{% endif %}" 
-                                                   class="input input-bordered input-sm w-full max-w-xs mes-input" 
-                                                   data-actividad="{{ actividad.id }}">
+                                            <input type="number" name="mes_{{ mes }}" min="0" max="999999"
+                                                value="{% if programacion_mensual %}{{ programacion_mensual|get_item:actividad.id|get_item:mes|default:0 }}{% else %}0{% endif %}"
+                                                class="input input-bordered input-sm w-full max-w-xs mes-input"
+                                                data-actividad="{{ actividad.id }}">
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -417,8 +489,9 @@
                                 </tfoot>
                             </table>
                         </div>
-                        
-                        <button type="submit" class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 mt-3">
+
+                        <button type="submit"
+                            class="btn btn-sm btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 mt-3">
                             Guardar Programación
                         </button>
                     </form>
@@ -430,14 +503,17 @@
                 {% csrf_token %}
                 <div class="card-actions justify-between mt-6">
                     <button type="submit" name="accion" value="anterior" class="btn btn-ghost">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                         Anterior
                     </button>
-                    <button type="submit" name="accion" value="finalizar" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                    <button type="submit" name="accion" value="finalizar"
+                        class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
                         Finalizar
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
@@ -464,7 +540,7 @@
                     <h4 class="font-semibold text-congress-blue-700">Meta {{ forloop.counter }}</h4>
                     <!-- Truncar descripción de meta con line-clamp-2 -->
                     <p class="text-sm line-clamp-2">{{ meta.descripcion }}</p>
-                    
+
                     {% if meta.actividades.all %}
                     <div class="mt-3 space-y-2">
                         <p class="text-xs font-semibold text-base-content/70">Actividades:</p>
@@ -484,13 +560,15 @@
                 {% csrf_token %}
                 <div class="card-actions justify-between mt-6">
                     <button type="submit" name="accion" value="anterior" class="btn btn-ghost">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                         Anterior
                     </button>
                     <button type="submit" name="accion" value="confirmar" class="btn btn-success">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                         Confirmar y Crear Proyecto
@@ -503,114 +581,127 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // Contador para nombre del proyecto
-    const nombreInput = document.getElementById('nombre-input');
-    const nombreCount = document.getElementById('nombre-count');
-    if (nombreInput && nombreCount) {
-        nombreInput.addEventListener('input', function() {
-            nombreCount.textContent = this.value.length;
-        });
-        nombreCount.textContent = nombreInput.value.length;
-    }
-    
-    // Contador para objetivo
-    const objetivoInput = document.getElementById('objetivo-input');
-    const objetivoCount = document.getElementById('objetivo-count');
-    if (objetivoInput && objetivoCount) {
-        objetivoInput.addEventListener('input', function() {
-            objetivoCount.textContent = this.value.length;
-        });
-        objetivoCount.textContent = objetivoInput.value.length;
-    }
-    
-    // Contador para meta
-    const metaInput = document.getElementById('meta-input');
-    const metaCount = document.getElementById('meta-count');
-    if (metaInput && metaCount) {
-        metaInput.addEventListener('input', function() {
-            metaCount.textContent = this.value.length;
-        });
-    }
-    
-    // Contadores para actividades (múltiples por meta)
-    const actividadInputs = document.querySelectorAll('.actividad-descripcion-input');
-    actividadInputs.forEach(input => {
-        const metaId = input.dataset.meta;
-        const counter = document.getElementById(`actividad-count-${metaId}`);
-        if (counter) {
-            input.addEventListener('input', function() {
-                counter.textContent = this.value.length;
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // Contador para nombre del proyecto
+        const nombreInput = document.getElementById('nombre-input');
+        const nombreCount = document.getElementById('nombre-count');
+        if (nombreInput && nombreCount) {
+            nombreInput.addEventListener('input', function () {
+                nombreCount.textContent = this.value.length;
+            });
+            nombreCount.textContent = nombreInput.value.length;
+        }
+
+        // Contador para objetivo
+        const objetivoInput = document.getElementById('objetivo-input');
+        const objetivoCount = document.getElementById('objetivo-count');
+        if (objetivoInput && objetivoCount) {
+            objetivoInput.addEventListener('input', function () {
+                objetivoCount.textContent = this.value.length;
+            });
+            objetivoCount.textContent = objetivoInput.value.length;
+        }
+
+        // Contador para meta
+        const metaInput = document.getElementById('meta-input');
+        const metaCount = document.getElementById('meta-count');
+        if (metaInput && metaCount) {
+            metaInput.addEventListener('input', function () {
+                metaCount.textContent = this.value.length;
             });
         }
-    });
-    
-    // Contadores para medio de verificación
-    const medioInputs = document.querySelectorAll('.medio-verificacion-input');
-    medioInputs.forEach(input => {
-        const metaId = input.dataset.meta;
-        const counter = document.getElementById(`medio-count-${metaId}`);
-        if (counter) {
-            input.addEventListener('input', function() {
-                counter.textContent = this.value.length;
-            });
-        }
-    });
-    
-    // Contadores para recursos
-    const recursosInputs = document.querySelectorAll('.recursos-input');
-    recursosInputs.forEach(input => {
-        const metaId = input.dataset.meta;
-        const counter = document.getElementById(`recursos-count-${metaId}`);
-        if (counter) {
-            input.addEventListener('input', function() {
-                counter.textContent = this.value.length;
-            });
-        }
-    });
-    
-    // === MANEJO DE UNIDAD DE MEDIDA "OTRO" PARA TODOS LOS FORMULARIOS ===
-    const unidadSelects = document.querySelectorAll('.unidad-medida-select');
-    
-    unidadSelects.forEach(select => {
-        const metaId = select.dataset.meta;
-        const campoUnidadOtro = document.querySelector(`.campo-unidad-otro-${metaId}`);
-        const inputUnidadOtro = document.getElementById(`id_unidad_medida_otro_${metaId}`);
-        
-        if (campoUnidadOtro && inputUnidadOtro) {
-            select.addEventListener('change', function() {
-                if (this.value === 'Otro') {
+
+        // Contadores para actividades (múltiples por meta)
+        const actividadInputs = document.querySelectorAll('.actividad-descripcion-input');
+        actividadInputs.forEach(input => {
+            const metaId = input.dataset.meta;
+            const counter = document.getElementById(`actividad-count-${metaId}`);
+            if (counter) {
+                input.addEventListener('input', function () {
+                    counter.textContent = this.value.length;
+                });
+            }
+        });
+
+        // Contadores para medio de verificación
+        const medioInputs = document.querySelectorAll('.medio-verificacion-input');
+        medioInputs.forEach(input => {
+            const metaId = input.dataset.meta;
+            const counter = document.getElementById(`medio-count-${metaId}`);
+            if (counter) {
+                input.addEventListener('input', function () {
+                    counter.textContent = this.value.length;
+                });
+            }
+        });
+
+        // Contadores para recursos
+        const recursosInputs = document.querySelectorAll('.recursos-input');
+        recursosInputs.forEach(input => {
+            const metaId = input.dataset.meta;
+            const counter = document.getElementById(`recursos-count-${metaId}`);
+            if (counter) {
+                input.addEventListener('input', function () {
+                    counter.textContent = this.value.length;
+                });
+            }
+        });
+
+        // === MANEJO DE UNIDAD DE MEDIDA "OTRO" PARA TODOS LOS FORMULARIOS ===
+        const unidadSelects = document.querySelectorAll('.unidad-medida-select');
+
+        unidadSelects.forEach(select => {
+            const metaId = select.dataset.meta;
+            const campoUnidadOtro = document.querySelector(`.campo-unidad-otro-${metaId}`);
+            const inputUnidadOtro = document.getElementById(`id_unidad_medida_otro_${metaId}`);
+
+            if (campoUnidadOtro && inputUnidadOtro) {
+                select.addEventListener('change', function () {
+                    if (this.value === 'Otro') {
+                        campoUnidadOtro.style.display = 'block';
+                        inputUnidadOtro.required = true;
+                        inputUnidadOtro.disabled = false;
+                        inputUnidadOtro.readOnly = false;
+                        inputUnidadOtro.focus();
+                    } else {
+                        campoUnidadOtro.style.display = 'none';
+                        inputUnidadOtro.required = false;
+                        inputUnidadOtro.value = '';
+                    }
+                });
+
+                // Ejecutar al cargar para estado inicial
+                if (select.value === 'Otro') {
                     campoUnidadOtro.style.display = 'block';
                     inputUnidadOtro.required = true;
                     inputUnidadOtro.disabled = false;
                     inputUnidadOtro.readOnly = false;
-                    inputUnidadOtro.focus();
+                }
+            }
+        });
+
+        // === MANEJO DE CANTIDAD PROGRAMADA SEGÚN "ES CUANTIFICABLE" ===
+        const checkboxCuantificables = document.querySelectorAll('[name="es_cuantificable"]');
+        const inputCantidades = document.querySelectorAll('[name="cantidad_programada"]');
+
+        checkboxCuantificables.forEach((checkbox, index) => {
+            const inputCantidad = inputCantidades[index];
+            checkbox.addEventListener('change', function () {
+                if (this.checked) {
+                    inputCantidad.disabled = false;
+                    inputCantidad.required = true;
+                    inputCantidad.classList.remove('input-disabled');
                 } else {
-                    campoUnidadOtro.style.display = 'none';
-                    inputUnidadOtro.required = false;
-                    inputUnidadOtro.value = '';
+                    inputCantidad.disabled = true;
+                    inputCantidad.required = false;
+                    inputCantidad.value = '0';
+                    inputCantidad.classList.add('input-disabled');
                 }
             });
-            
-            // Ejecutar al cargar para estado inicial
-            if (select.value === 'Otro') {
-                campoUnidadOtro.style.display = 'block';
-                inputUnidadOtro.required = true;
-                inputUnidadOtro.disabled = false;
-                inputUnidadOtro.readOnly = false;
-            }
-        }
-    });
-    
-    // === MANEJO DE CANTIDAD PROGRAMADA SEGÚN "ES CUANTIFICABLE" ===
-    const checkboxCuantificables = document.querySelectorAll('[name="es_cuantificable"]');
-    const inputCantidades = document.querySelectorAll('[name="cantidad_programada"]');
 
-    checkboxCuantificables.forEach((checkbox, index) => {
-        const inputCantidad = inputCantidades[index];
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
+            // Ejecutar al cargar para estado inicial
+            if (checkbox.checked) {
                 inputCantidad.disabled = false;
                 inputCantidad.required = true;
                 inputCantidad.classList.remove('input-disabled');
@@ -622,118 +713,105 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Ejecutar al cargar para estado inicial
-        if (checkbox.checked) {
-            inputCantidad.disabled = false;
-            inputCantidad.required = true;
-            inputCantidad.classList.remove('input-disabled');
-        } else {
-            inputCantidad.disabled = true;
-            inputCantidad.required = false;
-            inputCantidad.value = '0';
-            inputCantidad.classList.add('input-disabled');
-        }
-    });
-    
-    // === CÁLCULO DE SUMA TOTAL DE PROGRAMACIÓN MENSUAL ===
-    const mesInputs = document.querySelectorAll('.mes-input');
-    
-    mesInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            const actividadId = this.dataset.actividad;
+        // === CÁLCULO DE SUMA TOTAL DE PROGRAMACIÓN MENSUAL ===
+        const mesInputs = document.querySelectorAll('.mes-input');
+
+        mesInputs.forEach(input => {
+            input.addEventListener('input', function () {
+                const actividadId = this.dataset.actividad;
+                calcularSumaTotal(actividadId);
+                validarProgramacion(actividadId);
+            });
+        });
+
+        // Calcular sumas iniciales al cargar la página
+        const actividadesIds = new Set();
+        mesInputs.forEach(input => {
+            actividadesIds.add(input.dataset.actividad);
+        });
+        actividadesIds.forEach(actividadId => {
             calcularSumaTotal(actividadId);
             validarProgramacion(actividadId);
         });
     });
-    
-    // Calcular sumas iniciales al cargar la página
-    const actividadesIds = new Set();
-    mesInputs.forEach(input => {
-        actividadesIds.add(input.dataset.actividad);
-    });
-    actividadesIds.forEach(actividadId => {
-        calcularSumaTotal(actividadId);
-        validarProgramacion(actividadId);
-    });
-});
 
-function calcularSumaTotal(actividadId) {
-    const inputs = document.querySelectorAll(`.mes-input[data-actividad="${actividadId}"]`);
-    let suma = 0;
-    inputs.forEach(inp => {
-        suma += parseInt(inp.value) || 0;
-    });
-    const sumaElement = document.getElementById(`suma-total-${actividadId}`);
-    if (sumaElement) {
-        sumaElement.textContent = suma;
+    function calcularSumaTotal(actividadId) {
+        const inputs = document.querySelectorAll(`.mes-input[data-actividad="${actividadId}"]`);
+        let suma = 0;
+        inputs.forEach(inp => {
+            suma += parseInt(inp.value) || 0;
+        });
+        const sumaElement = document.getElementById(`suma-total-${actividadId}`);
+        if (sumaElement) {
+            sumaElement.textContent = suma;
+        }
     }
-}
 
-// === VALIDACIÓN VISUAL DE PROGRAMACIÓN MENSUAL ===
-function validarProgramacion(actividadId) {
-    const inputs = document.querySelectorAll(`.mes-input[data-actividad="${actividadId}"]`);
-    const totalElement = document.getElementById(`total-${actividadId}`);
-    const sumaElement = document.getElementById(`suma-total-${actividadId}`);
-    const btnGuardar = document.querySelector(`#form-programacion-${actividadId} button[type="submit"]`);
-    
-    if (!totalElement || !sumaElement || !btnGuardar) return;
-    
-    const total = parseInt(totalElement.value) || 0;
-    let suma = 0;
-    
-    inputs.forEach(inp => {
-        suma += parseInt(inp.value) || 0;
-    });
-    
-    // Validar si excede el total
-    if (suma > total) {
-        sumaElement.classList.add('text-error', 'font-bold');
-        sumaElement.classList.remove('text-success');
-        btnGuardar.disabled = true;
-        
-        // Mostrar mensaje de error
-        let alertaExistente = document.getElementById(`alerta-${actividadId}`);
-        if (!alertaExistente) {
-            const alerta = document.createElement('div');
-            alerta.id = `alerta-${actividadId}`;
-            alerta.className = 'alert alert-error mt-2';
-            alerta.innerHTML = `
+    // === VALIDACIÓN VISUAL DE PROGRAMACIÓN MENSUAL ===
+    function validarProgramacion(actividadId) {
+        const inputs = document.querySelectorAll(`.mes-input[data-actividad="${actividadId}"]`);
+        const totalElement = document.getElementById(`total-${actividadId}`);
+        const sumaElement = document.getElementById(`suma-total-${actividadId}`);
+        const btnGuardar = document.querySelector(`#form-programacion-${actividadId} button[type="submit"]`);
+
+        if (!totalElement || !sumaElement || !btnGuardar) return;
+
+        const total = parseInt(totalElement.value) || 0;
+        let suma = 0;
+
+        inputs.forEach(inp => {
+            suma += parseInt(inp.value) || 0;
+        });
+
+        // Validar si excede el total
+        if (suma > total) {
+            sumaElement.classList.add('text-error', 'font-bold');
+            sumaElement.classList.remove('text-success');
+            btnGuardar.disabled = true;
+
+            // Mostrar mensaje de error
+            let alertaExistente = document.getElementById(`alerta-${actividadId}`);
+            if (!alertaExistente) {
+                const alerta = document.createElement('div');
+                alerta.id = `alerta-${actividadId}`;
+                alerta.className = 'alert alert-error mt-2';
+                alerta.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>La suma de programación mensual (${suma}) excede el total programado (${total})</span>
             `;
-            btnGuardar.parentElement.insertBefore(alerta, btnGuardar);
-        } else {
-            alertaExistente.querySelector('span').textContent = `La suma de programación mensual (${suma}) excede el total programado (${total})`;
-        }
-    } else if (suma === total) {
-        sumaElement.classList.add('text-success', 'font-bold');
-        sumaElement.classList.remove('text-error');
-        btnGuardar.disabled = false;
-        
-        // Remover mensaje de error si existe
-        const alerta = document.getElementById(`alerta-${actividadId}`);
-        if (alerta) alerta.remove();
-    } else {
-        sumaElement.classList.remove('text-error', 'text-success', 'font-bold');
-        btnGuardar.disabled = false;
-        
-        // Remover mensaje de error si existe
-        const alerta = document.getElementById(`alerta-${actividadId}`);
-        if (alerta) alerta.remove();
-    }
-}
+                btnGuardar.parentElement.insertBefore(alerta, btnGuardar);
+            } else {
+                alertaExistente.querySelector('span').textContent = `La suma de programación mensual (${suma}) excede el total programado (${total})`;
+            }
+        } else if (suma === total) {
+            sumaElement.classList.add('text-success', 'font-bold');
+            sumaElement.classList.remove('text-error');
+            btnGuardar.disabled = false;
 
-function repartirUniformemente(actividadId, total) {
-    const inputs = document.querySelectorAll(`.mes-input[data-actividad="${actividadId}"]`);
-    const cantidadPorMes = Math.floor(total / 12);
-    const resto = total % 12;
-    
-    inputs.forEach((input, index) => {
-        input.value = cantidadPorMes + (index < resto ? 1 : 0);
-        input.dispatchEvent(new Event('input'));
-    });
-}
+            // Remover mensaje de error si existe
+            const alerta = document.getElementById(`alerta-${actividadId}`);
+            if (alerta) alerta.remove();
+        } else {
+            sumaElement.classList.remove('text-error', 'text-success', 'font-bold');
+            btnGuardar.disabled = false;
+
+            // Remover mensaje de error si existe
+            const alerta = document.getElementById(`alerta-${actividadId}`);
+            if (alerta) alerta.remove();
+        }
+    }
+
+    function repartirUniformemente(actividadId, total) {
+        const inputs = document.querySelectorAll(`.mes-input[data-actividad="${actividadId}"]`);
+        const cantidadPorMes = Math.floor(total / 12);
+        const resto = total % 12;
+
+        inputs.forEach((input, index) => {
+            input.value = cantidadPorMes + (index < resto ? 1 : 0);
+            input.dispatchEvent(new Event('input'));
+        });
+    }
 </script>
 {% endblock %}

@@ -46,6 +46,7 @@ class Proyecto(models.Model):
     motivo_rechazo = models.CharField(max_length=1000, blank=True, verbose_name='Motivo de Rechazo')
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Creación')
     fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name='Última Modificación')
+    es_no_planificado = models.BooleanField(default=False, verbose_name='Es Proyecto No Planificado')
     
     class Meta:
         verbose_name = 'Proyecto'
@@ -76,6 +77,35 @@ class MetaProyecto(models.Model):
     
     def __str__(self):
         return f"Meta {self.id} - {self.proyecto.nombre}"
+
+
+class MetaPredeterminada(models.Model):
+    """Modelo para metas predeterminadas configurables por el administrador"""
+    nombre = models.CharField(max_length=200, verbose_name='Nombre de la Meta')
+    activa = models.BooleanField(default=True, verbose_name='Activa')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Meta Predeterminada'
+        verbose_name_plural = 'Metas Predeterminadas'
+        ordering = ['nombre']
+    
+    def __str__(self):
+        return self.nombre
+
+class ObjetivoEstrategico(models.Model):
+    """Modelo para los objetivos estratégicos definidos por el administrador"""
+    descripcion = models.TextField(verbose_name='Descripción del Objetivo')
+    activa = models.BooleanField(default=True, verbose_name='Activo')
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Creación')
+
+    class Meta:
+        verbose_name = 'Objetivo Estratégico'
+        verbose_name_plural = 'Objetivos Estratégicos'
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return self.descripcion[:50]
 
 
 class Actividad(models.Model):

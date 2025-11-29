@@ -6,33 +6,49 @@
     <div class="flex items-center justify-between">
         <div>
             <!-- Agregar tooltip para nombres largos de proyecto -->
-            <div class="tooltip tooltip-right" data-tip="{{ proyecto.nombre }}">
-                <h1 class="text-3xl font-bold text-congress-blue-700 line-clamp-1">{{ proyecto.nombre }}</h1>
+            <div class="tooltip tooltip-right"
+                data-tip="{% if proyecto.nombre %}{{ proyecto.nombre }}{% else %}(Sin nombre){% endif %}">
+                <h1 class="text-3xl font-bold text-congress-blue-700 line-clamp-1">
+                    {% if proyecto.nombre %}
+                    {{ proyecto.nombre }}
+                    {% else %}
+                    <span class="italic text-base-content/50">(Sin nombre)</span>
+                    {% endif %}
+                </h1>
             </div>
             <p class="text-base-content/60 mt-1">{{ proyecto.unidad.unidad.nombre }} - Año {{ proyecto.anio }}</p>
         </div>
         <div class="flex gap-2">
             <a href="{% url 'administrador:proyectos_unidad' proyecto.unidad.id %}" class="btn btn-ghost">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Volver
             </a>
-            <a href="{% url 'administrador:exportar_proyecto_detalle_pdf' proyecto.id %}" class="btn btn-info" target="_blank">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <a href="{% url 'administrador:exportar_proyecto_detalle_pdf' proyecto.id %}" class="btn btn-info"
+                target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Exportar PDF
             </a>
             <a href="{% url 'administrador:exportar_proyecto_detalle_excel' proyecto.id %}" class="btn btn-success">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Exportar Excel
             </a>
             <a href="{% url 'administrador:editar_proyecto_admin' proyecto.id %}" class="btn btn-warning">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 Editar POA
             </a>
@@ -48,13 +64,13 @@
                 </div>
                 <div>
                     {% if proyecto.estado == 'BORRADOR' %}
-                        <span class="badge badge-ghost badge-lg">Borrador</span>
+                    <span class="badge badge-ghost badge-lg">Borrador</span>
                     {% elif proyecto.estado == 'ENVIADO' %}
-                        <span class="badge badge-warning badge-lg">Enviado</span>
+                    <span class="badge badge-warning badge-lg">Enviado</span>
                     {% elif proyecto.estado == 'APROBADO' %}
-                        <span class="badge badge-success badge-lg">Aprobado</span>
+                    <span class="badge badge-success badge-lg">Aprobado</span>
                     {% elif proyecto.estado == 'RECHAZADO' %}
-                        <span class="badge badge-error badge-lg">Rechazado</span>
+                    <span class="badge badge-error badge-lg">Rechazado</span>
                     {% endif %}
                 </div>
             </div>
@@ -93,12 +109,14 @@
                 </div>
             </div>
             {% endif %}
-            
+
             {% if proyecto.estado == 'APROBADO' %}
             <div class="mt-4 p-4 bg-success/10 rounded-lg border border-success/20">
                 <div class="flex items-center gap-2 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <p class="font-semibold text-success">Proyecto Aprobado</p>
                 </div>
@@ -108,8 +126,10 @@
             {% elif proyecto.estado == 'RECHAZADO' %}
             <div class="mt-4 p-4 bg-error/10 rounded-lg border border-error/20">
                 <div class="flex items-center gap-2 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-error" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <p class="font-semibold text-error">Proyecto Rechazado</p>
                 </div>
@@ -124,8 +144,10 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="stat bg-base-100 shadow-xl rounded-lg">
             <div class="stat-figure text-congress-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
             </div>
             <div class="stat-title">Total Metas</div>
@@ -135,8 +157,10 @@
         <!-- Simplified Total Actividades to use context variable -->
         <div class="stat bg-base-100 shadow-xl rounded-lg">
             <div class="stat-figure text-congress-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
             </div>
             <div class="stat-title">Total Actividades</div>
@@ -146,8 +170,10 @@
         <!-- Simplified Presupuesto Total to use context variable -->
         <div class="stat bg-base-100 shadow-xl rounded-lg">
             <div class="stat-figure text-congress-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
             <div class="stat-title">Presupuesto Total</div>
@@ -157,8 +183,10 @@
         <!-- Simplified Total Evidencias to use context variable -->
         <div class="stat bg-base-100 shadow-xl rounded-lg">
             <div class="stat-figure text-congress-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                 </svg>
             </div>
             <div class="stat-title">Total Evidencias</div>
@@ -177,7 +205,7 @@
                     <h3 class="card-title text-congress-blue-600 line-clamp-1">{{ meta.descripcion }}</h3>
                 </div>
             </div>
-            
+
             <!-- Actividades de la meta con más detalles -->
             <div class="space-y-3">
                 {% for actividad in meta.actividades.all %}
@@ -212,9 +240,9 @@
                                     <p class="text-sm font-semibold text-base-content/70">Es Cuantificable</p>
                                     <p class="text-base">
                                         {% if actividad.es_cuantificable %}
-                                            <span class="badge badge-success">Sí</span>
+                                        <span class="badge badge-success">Sí</span>
                                         {% else %}
-                                            <span class="badge badge-ghost">No</span>
+                                        <span class="badge badge-ghost">No</span>
                                         {% endif %}
                                     </p>
                                 </div>
@@ -240,7 +268,8 @@
                         <!-- Programación mensual con evidencias simplificadas -->
                         {% if actividad.avances.exists %}
                         <div class="mt-4">
-                            <p class="text-sm font-semibold text-base-content/70 mb-2">Programación Mensual y Evidencias</p>
+                            <p class="text-sm font-semibold text-base-content/70 mb-2">Programación Mensual y Evidencias
+                            </p>
                             <div class="overflow-x-auto">
                                 <table class="table table-sm">
                                     <thead>
@@ -253,45 +282,50 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                {% for avance in actividad.avances.all %}
-    <tr class="hover">
-        <td class="font-medium">{{ avance.get_mes_display }}</td>
-        <td class="text-center">{{ avance.cantidad_programada_mes }}</td>
-        <td class="text-center">
-            {{ avance.cantidad_realizada }}
-            {% if avance.es_no_planificada %}
-                <span class="badge badge-xs badge-warning ml-1" title="Actividad no planificada">NP</span>
-            {% endif %}
-        </td>
-        <td class="text-center">
-            {% if avance.cumplimiento is None %}
-                <span class="badge badge-neutral">No aplica</span>
-            {% else %}
-                <span class="text-sm">{{ avance.cumplimiento }}%</span>
-            {% endif %} </td>
+                                        {% for avance in actividad.avances.all %}
+                                        <tr class="hover">
+                                            <td class="font-medium">{{ avance.get_mes_display }}</td>
+                                            <td class="text-center">{{ avance.cantidad_programada_mes }}</td>
+                                            <td class="text-center">
+                                                {{ avance.cantidad_realizada }}
+                                                {% if avance.es_no_planificada %}
+                                                <span class="badge badge-xs badge-warning ml-1"
+                                                    title="Actividad no planificada">NP</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                {% if avance.cumplimiento is None %}
+                                                <span class="badge badge-neutral">No aplica</span>
+                                                {% else %}
+                                                <span class="text-sm">{{ avance.cumplimiento }}%</span>
+                                                {% endif %}
+                                            </td>
 
                                             <td>
                                                 {% with evidencias_mes=actividad.evidencias.all|dictsort:"mes" %}
-                                                    {% if evidencias_mes %}
-                                                        <div class="flex flex-wrap gap-1">
-                                                            {% for evidencia in evidencias_mes %}
-                                                                {% if evidencia.mes == avance.mes %}
-                                                                <div class="tooltip" data-tip="{{ evidencia.descripcion|default:'Sin descripción' }}">
-                                                                    <a href="{% if evidencia.archivo %}{{ evidencia.archivo.url }}{% else %}{{ evidencia.url }}{% endif %}" 
-                                                                       target="_blank" 
-                                                                       class="btn btn-xs btn-ghost gap-1">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                                        </svg>
-                                                                        <span class="text-xs">{{ evidencia.tipo }}</span>
-                                                                    </a>
-                                                                </div>
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                        </div>
-                                                    {% else %}
-                                                        <span class="text-xs text-base-content/50">Sin evidencias</span>
+                                                {% if evidencias_mes %}
+                                                <div class="flex flex-wrap gap-1">
+                                                    {% for evidencia in evidencias_mes %}
+                                                    {% if evidencia.mes == avance.mes %}
+                                                    <div class="tooltip"
+                                                        data-tip="{{ evidencia.descripcion|default:'Sin descripción' }}">
+                                                        <a href="{% if evidencia.archivo %}{{ evidencia.archivo.url }}{% else %}{{ evidencia.url }}{% endif %}"
+                                                            target="_blank" class="btn btn-xs btn-ghost gap-1">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3"
+                                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                            </svg>
+                                                            <span class="text-xs">{{ evidencia.tipo }}</span>
+                                                        </a>
+                                                    </div>
                                                     {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                                {% else %}
+                                                <span class="text-xs text-base-content/50">Sin evidencias</span>
+                                                {% endif %}
                                                 {% endwith %}
                                             </td>
                                         </tr>
@@ -310,11 +344,15 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                 {% for evidencia in actividad.evidencias.all %}
-                                <div class="card card-compact bg-base-100 border border-base-300 hover:shadow-md transition-shadow">
+                                <div
+                                    class="card card-compact bg-base-100 border border-base-300 hover:shadow-md transition-shadow">
                                     <div class="card-body">
                                         <div class="flex items-start gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-congress-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                class="h-5 w-5 text-congress-blue-600 flex-shrink-0 mt-0.5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             <div class="flex-1 min-w-0">
                                                 <div class="flex items-center gap-2 mb-1">
@@ -325,12 +363,15 @@
                                                 </div>
                                                 <p class="text-xs text-base-content/80 line-clamp-2">{{ evidencia.descripcion|default:"Sin descripción" }}</p>
                                                 <p class="text-xs text-base-content/50 mt-1">{{ evidencia.fecha_subida|date:"d/m/Y" }}</p>
-                                                <a href="{% if evidencia.archivo %}{{ evidencia.archivo.url }}{% else %}{{ evidencia.url }}{% endif %}" 
-                                                   target="_blank" 
-                                                   class="btn btn-xs btn-primary mt-2 w-full">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                <a href="{% if evidencia.archivo %}{{ evidencia.archivo.url }}{% else %}{{ evidencia.url }}{% endif %}"
+                                                    target="_blank" class="btn btn-xs btn-primary mt-2 w-full">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
                                                     Ver Evidencia
                                                 </a>
@@ -354,13 +395,15 @@
     {% if proyecto.estado == 'ENVIADO' %}
     <div class="flex gap-4 justify-end">
         <a href="{% url 'administrador:rechazar_proyecto' proyecto.id %}" class="btn btn-error">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
             Rechazar Proyecto
         </a>
         <button onclick="confirmarAprobacion()" class="btn btn-success">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
             Aprobar Proyecto
@@ -373,21 +416,25 @@
             <h3 class="font-bold text-lg text-congress-blue-700">Confirmar Aprobación</h3>
             <div class="py-4">
                 <div class="alert alert-warning">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     <div>
                         <p class="font-semibold">¡Atención!</p>
-                        <p class="text-sm">Al aprobar este proyecto, se eliminarán TODOS los demás proyectos de esta unidad de forma permanente.</p>
+                        <p class="text-sm">Al aprobar este proyecto, se eliminarán TODOS los demás proyectos de esta
+                            unidad de forma permanente.</p>
                     </div>
                 </div>
-                <p class="mt-4">¿Está seguro de que desea aprobar el proyecto <strong>"{{ proyecto.nombre }}"</strong>?</p>
+                <p class="mt-4">¿Está seguro de que desea aprobar el proyecto <strong>"{% if proyecto.nombre %}{{ proyecto.nombre }}{% else %}(Sin nombre){% endif %}"</strong>?</p>
             </div>
             <div class="modal-action">
                 <form method="dialog">
                     <button class="btn btn-ghost">Cancelar</button>
                 </form>
-                <a href="{% url 'administrador:aprobar_proyecto' proyecto.id %}" class="btn btn-success">Confirmar Aprobación</a>
+                <a href="{% url 'administrador:aprobar_proyecto' proyecto.id %}" class="btn btn-success">Confirmar
+                    Aprobación</a>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
@@ -396,9 +443,9 @@
     </dialog>
 
     <script>
-    function confirmarAprobacion() {
-        document.getElementById('modal_aprobar').showModal();
-    }
+        function confirmarAprobacion() {
+            document.getElementById('modal_aprobar').showModal();
+        }
     </script>
     {% endif %}
 </div>
