@@ -74,27 +74,10 @@ Bash
 
 # 1. Aplica las migraciones de Django para crear las tablas
 python manage.py migrate
-Importante: El sistema requiere que exista una "Unidad" especial con id=0 antes de poder crear cualquier usuario.
 
-Bash
+- - - - - - - - - - - 
+- - - - - - - - - - - 
 
-# 2. Abre la shell de Django
-python manage.py shell
-
-# 3. Dentro de la shell (>>>), ejecuta el siguiente código:
-from login.models import Unidad
-unidad_obj, created = Unidad.objects.update_or_create(
-    id=0,
-    defaults={
-       'nombre': "Unidad Administrativa",
-       'activa': True,
-       'sin_reporte': True
-    }
-)
-
-# 4. Escribe 'exit()' y presiona Enter para salir
-exit()
-Bash
 
 # 5. Ahora sí, crea tu cuenta de superusuario
 python manage.py createsuperuser
