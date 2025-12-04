@@ -78,20 +78,22 @@ def generar_poa_excel(unidad, proyectos, objetivo_estrategico):
     ws['D6'].font = Font(size=11)
     ws['D6'].alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
     
-    # Fila 7: Objetivos específicos (columna D está fusionada D7:F7)
+    # Fila 7: Objetivos de la Unidad (columna D está fusionada D7:F7)
     if 'D7:F7' not in [str(r) for r in ws.merged_cells.ranges]:
         ws.merge_cells('D7:F7')
     
-    objetivos_especificos = []
+    objetivos_unidad = set()
     for proyecto in proyectos:
-        for meta in proyecto.metas.all():
-            objetivos_especificos.append(f"- {meta.descripcion}")
+        if proyecto.objetivo_unidad:
+            objetivos_unidad.add(proyecto.objetivo_unidad)
+            
+    objetivos_texto = '\n'.join([f"- {obj}" for obj in objetivos_unidad])
     
-    ws['D7'] = '\n'.join(objetivos_especificos)
+    ws['D7'] = objetivos_texto
     ws['D7'].font = Font(size=11)
     ws['D7'].alignment = Alignment(wrap_text=True, vertical='top', horizontal='left')
     # Ajustar altura de fila según cantidad de objetivos
-    ws.row_dimensions[7].height = max(15 * len(objetivos_especificos), 30)
+    ws.row_dimensions[7].height = max(15 * len(objetivos_unidad), 30)
     
     # === LIMPIAR DATOS EXISTENTES ===
     # Eliminar filas de datos de ejemplo (desde fila 14 en adelante)
@@ -658,4 +660,174 @@ def generar_poa_excel(unidad, proyectos, objetivo_estrategico):
                 ws[f'C{fila_inicio_proyecto}'].alignment = Alignment(wrap_text=True, vertical='top', horizontal='left')
                 ws[f'C{fila_inicio_proyecto}'].font = Font(bold=True)
     
+    # === CÁLCULO DE PORCENTAJES TRIMESTRALES GLOBALES (80/20) ===
+    # Iterar sobre las columnas de resumen trimestral para calcular el promedio global
+    # Se debe hacer al final porque necesitamos los datos de todas las filas
+    
+    # Identificar si existe proyecto no planificado
+    proyecto_no_planificado_existe = False
+    if usuario_unidad:
+        proyecto_no_planificado_existe = proyectos.model.objects.filter(
+            unidad=usuario_unidad,
+            anio=proyectos.first().anio if proyectos.exists() else datetime.now().year,
+            es_no_planificado=True
+        ).exists()
+
+    # Columnas de inicio de cada trimestre (basado en la lógica de generación)
+    # Q1: Start=7 (G), End=18 (R), Resumen=19 (S) -> No, wait.
+    # Logic:
+    # Q1: 3 months * 4 cols = 12 cols. Start 7. End 18. Resumen 19.
+    # Q2: Start 20. End 31. Resumen 32.
+    # Q3: Start 33. End 44. Resumen 45.
+    # Q4: Start 46. End 57. Resumen 58.
+    
+    # Recalculamos las columnas de resumen para estar seguros
+    col_resumen_q1 = 7 + (3 * 4) # 19 (S)
+    col_resumen_q2 = col_resumen_q1 + 1 + (3 * 4) # 32 (AF)
+    col_resumen_q3 = col_resumen_q2 + 1 + (3 * 4) # 45 (AS)
+    col_resumen_q4 = col_resumen_q3 + 1 + (3 * 4) # 58 (BF)
+    
+    cols_resumen = [col_resumen_q1, col_resumen_q2, col_resumen_q3, col_resumen_q4]
+    
+    # Filas de datos: desde 14 hasta fila_actual - 1
+    # Necesitamos distinguir filas de actividades normales vs no planificadas
+    # Las no planificadas están al final, después del título "ACTIVIDADES NO PLANIFICADAS"
+    
+    # Encontrar fila de inicio de no planificadas (si existe)
+    fila_inicio_no_planificadas = -1
+    for r in range(14, fila_actual):
+        cell_b = ws[f'B{r}']
+        if cell_b.value == "ACTIVIDADES NO PLANIFICADAS":
+            fila_inicio_no_planificadas = r
+            break
+            
+    for i, col_idx in enumerate(cols_resumen):
+        col_letter = get_column_letter(col_idx)
+        
+        # Recolectar valores de cumplimiento
+        normal_values = []
+        unplanned_values = []
+        unplanned_realized = False
+        
+        for r in range(14, fila_actual):
+            # Saltar filas de encabezados/títulos intermedios
+            if ws[f'B{r}'].value == "ACTIVIDADES NO PLANIFICADAS":
+                continue
+                
+            # Determinar si es fila de actividad (tiene número en B)
+            if not isinstance(ws[f'B{r}'].value, int):
+                continue
+                
+            # Obtener valor de la celda de resumen trimestral de esta fila
+            # OJO: La celda de resumen tiene una FÓRMULA.
+            # No podemos leer el valor calculado sin evaluar la fórmula o usar una librería que lo haga.
+            # PERO, podemos reconstruir el valor buscando las celdas de cumplimiento de los meses.
+            
+            # Mejor estrategia: Mirar las celdas de cumplimiento de los 3 meses anteriores a esta columna de resumen
+            # Columna Resumen es col_idx.
+            # Mes 3: col_idx - 1 (Verif), -2 (Cump) -> col_idx - 2
+            # Mes 2: col_idx - 1 - 4 (Verif) - 2 (Cump) -> col_idx - 6
+            # Mes 1: col_idx - 1 - 4 - 4 - 2 -> col_idx - 10
+            
+            cump_cols = [col_idx - 2, col_idx - 6, col_idx - 10]
+            
+            row_values = []
+            for c_idx in cump_cols:
+                c_letter = get_column_letter(c_idx)
+                cell_val = ws[f'{c_letter}{r}'].value
+                
+                # cell_val puede ser fórmula, número, o string "Actividad no programada"
+                # Si es fórmula, asumimos que es válida si Programado > 0.
+                # Si es "Actividad no programada" o "-", ignorar.
+                
+                # Para simplificar, miramos las columnas de Programado y Realizado
+                # Prog: c_idx - 2. Real: c_idx - 1.
+                prog_cell = ws[f'{get_column_letter(c_idx-2)}{r}'].value
+                real_cell = ws[f'{get_column_letter(c_idx-1)}{r}'].value
+                
+                if isinstance(prog_cell, (int, float)) and prog_cell > 0:
+                    if isinstance(real_cell, (int, float)):
+                        # Calcular cumplimiento
+                        val = min(real_cell / prog_cell, 1.0)
+                        row_values.append(val)
+                elif fila_inicio_no_planificadas != -1 and r > fila_inicio_no_planificadas:
+                     # Es no planificada
+                     if isinstance(real_cell, (int, float)) and real_cell > 0:
+                         row_values.append(1.0) # 100% si se hizo
+                         unplanned_realized = True
+            
+            if row_values:
+                avg_row = sum(row_values) / len(row_values)
+                
+                if fila_inicio_no_planificadas != -1 and r > fila_inicio_no_planificadas:
+                    unplanned_values.append(avg_row)
+                else:
+                    normal_values.append(avg_row)
+
+        # Calcular promedios globales
+        avg_normal = sum(normal_values) / len(normal_values) if normal_values else 0.0
+        # avg_unplanned = sum(unplanned_values) / len(unplanned_values) if unplanned_values else 0.0
+        
+        # Lógica 80/20
+        final_score = 0.0
+        
+        if not proyecto_no_planificado_existe:
+            # Caso 1: No existe proyecto no planificado -> 100% Normal
+            final_score = avg_normal
+        else:
+            # Caso 2: Existe proyecto no planificado
+            if unplanned_realized:
+                # Se hizo al menos una no planificada -> 80% Normal + 20% (Full)
+                # User: "volvera a tomar el 100%" -> Implica que el componente no planificado vale 20% completo si se cumple la condición
+                final_score = (avg_normal * 0.8) + 0.2
+            else:
+                # No se hizo ninguna no planificada -> 80% Normal
+                final_score = avg_normal * 0.8
+        
+        # Escribir en el encabezado (Fila 11)
+        # Necesitamos ajustar el merge de la fila 11 para hacer espacio
+        # Actualmente Fila 11 está mergeada desde Start hasta End (antes de Resumen)
+        # La columna Resumen (col_letter) está libre en Fila 11?
+        # Revisemos línea 216: ws.merge_cells(f'{q_start_col_letter}11:{q_end_col_letter}11')
+        # q_end_col_letter INCLUYE la columna de resumen.
+        # Entonces debemos des-mergear y re-mergear.
+        
+        q_end_col_idx = col_idx
+        q_start_col_idx = col_idx - 12
+        
+        q_start_letter = get_column_letter(q_start_col_idx)
+        q_end_letter = get_column_letter(q_end_col_idx)
+        
+        try:
+            ws.unmerge_cells(f'{q_start_letter}11:{q_end_letter}11')
+        except:
+            pass
+            
+        # Merge título (hasta penúltima columna)
+        q_title_end_letter = get_column_letter(q_end_col_idx - 1)
+        ws.merge_cells(f'{q_start_letter}11:{q_title_end_letter}11')
+        
+        # Restaurar estilo título
+        cell_title = ws[f'{q_start_letter}11']
+        cell_title.value = quarters[i]
+        cell_title.font = Font(bold=True, size=11)
+        cell_title.alignment = Alignment(horizontal='center', vertical='center')
+        cell_title.border = header_border
+        
+        # Celda de Porcentaje Global (Última columna del trimestre, Fila 11)
+        cell_score = ws[f'{col_letter}11']
+        cell_score.value = final_score
+        cell_score.number_format = '0%'
+        cell_score.font = Font(bold=True, size=11)
+        cell_score.alignment = Alignment(horizontal='center', vertical='center')
+        cell_score.border = header_border
+        
+        # Colorear según valor (opcional, pero ayuda)
+        if final_score >= 0.8:
+            cell_score.fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid") # Verde
+        elif final_score >= 0.5:
+            cell_score.fill = PatternFill(start_color="FFEB9C", end_color="FFEB9C", fill_type="solid") # Amarillo
+        else:
+            cell_score.fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid") # Rojo
+
     return wb
