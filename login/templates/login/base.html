@@ -12,11 +12,15 @@
 <body class="min-h-screen bg-base-200">
     {% block contenido %}{% endblock %}
 
-    Script para cargar tema guardado
     <script>
         // Cargar tema guardado al iniciar
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
 
         const themeToggle = document.getElementById('theme-toggle');
         if (themeToggle) {
@@ -27,6 +31,12 @@
                 const newTheme = this.checked ? 'dark' : 'light';
                 htmlElement.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
+
+                if (newTheme === 'dark') {
+                    htmlElement.classList.add('dark');
+                } else {
+                    htmlElement.classList.remove('dark');
+                }
             });
         }
     </script>
