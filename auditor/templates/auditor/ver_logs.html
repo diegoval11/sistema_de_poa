@@ -1,0 +1,89 @@
+{% extends 'auditor/base_auditor.html' %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="space-y-6">
+    <!-- Header con filtros y exportación -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-amber-700">{{ titulo }}</h1>
+            <p class="text-base-content/60 mt-1">Registro completo de actividades del sistema</p>
+        </div>
+        
+        <div class="flex gap-2">
+            <!-- Botones de exportación -->
+            <a href="{% url 'auditor:exportar_logs_pdf' %}" class="btn btn-error btn-sm" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+            </a>
+            <a href="{% url 'auditor:exportar_logs_excel' %}" class="btn btn-success btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <form method="get" class="flex flex-wrap gap-4">
+                <input 
+                    type="text" 
+                    name="buscar"
+                    placeholder="Buscar en logs..." 
+                    class="input input-bordered flex-1"
+                    value="{{ busqueda }}"
+                />
+                <select name="accion" class="select select-bordered">
+                    <option value="">Todas las acciones</option>
+                    {% for accion in acciones %}
+                    <option value="{{ accion }}" {% if accion == accion_filtro %}selected{% endif %}>{{ accion }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary bg-amber-600 hover:bg-amber-700 border-none">Filtrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de logs -->
+    <div class="overflow-x-auto bg-base-100 shadow-xl rounded-lg">
+        <table class="table table-zebra w-full">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Acción</th>
+                    <th>Tabla</th>
+                    <th>Registro ID</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td class="whitespace-nowrap">{{ log.fecha|date:"d/m/Y H:i:s" }}</td>
+                    <td>{{ log.usuario.email }}</td>
+                    <td>
+                        <span class="badge badge-sm {% if 'CREACION' in log.accion %}badge-success{% elif 'EDICION' in log.accion %}badge-info{% elif 'ELIMINACION' in log.accion %}badge-error{% elif 'APROBACION' in log.accion %}badge-primary{% else %}badge-warning{% endif %}">
+                            {{ log.accion }}
+                        </span>
+                    </td>
+                    <td>{{ log.tabla }}</td>
+                    <td>{{ log.registro_id }}</td>
+                    <td class="text-sm text-gray-500">{{ log.ip }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-gray-500">
+                        No se encontraron logs.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

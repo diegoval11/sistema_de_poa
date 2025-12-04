@@ -1,0 +1,122 @@
+{% extends 'administrador/base_admin.html' %}
+
+{% block contenido %}
+<div class="space-y-6">
+    <!-- Encabezado con buscador -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-congress-blue-700">{{ titulo }}</h1>
+            <p class="text-base-content/60 mt-1">Gestión de unidades y sus proyectos</p>
+        </div>
+        
+        <!-- Agregando botones de exportación y buscador -->
+        <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+            <!-- Botones de exportación -->
+            <div class="flex gap-2">
+                <a href="{% url 'administrador:exportar_unidades_pdf' %}" 
+                   class="btn btn-info btn-sm gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    PDF
+                </a>
+                <a href="{% url 'administrador:exportar_unidades_excel' %}" 
+                   class="btn btn-success btn-sm gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Excel
+                </a>
+            </div>
+            
+            <!-- Buscador dinámico -->
+            <div class="form-control w-full md:w-80">
+                <input 
+                    type="text" 
+                    id="buscador-unidades"
+                    placeholder="Buscar unidad..." 
+                    class="input input-bordered w-full"
+                    value="{{ busqueda }}"
+                />
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de unidades -->
+    <div id="contenedor-unidades" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for unidad in unidades %}
+        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <h2 class="card-title text-congress-blue-700">{{ unidad.unidad.nombre }}</h2>
+                <p class="text-sm text-base-content/60">{{ unidad.email }}</p>
+                
+                <div class="stats stats-vertical shadow mt-4">
+                    <div class="stat py-2">
+                        <div class="stat-title text-xs">Total Proyectos</div>
+                        <div class="stat-value text-2xl text-congress-blue-600">{{ unidad.total_proyectos }}</div>
+                    </div>
+                    <div class="stat py-2">
+                        <div class="stat-title text-xs">Aprobados</div>
+                        <!-- Actualizado a count_proyectos_aprobados -->
+                        <div class="stat-value text-2xl text-success">{{ unidad.count_proyectos_aprobados }}</div>
+                    </div>
+                    <!-- Agregando indicador de rendimiento con colores -->
+                    <div class="stat py-2">
+                        <div class="stat-title text-xs">Rendimiento</div>
+                        <div class="stat-value text-2xl {% if unidad.rendimiento >= 80 %}text-success{% elif unidad.rendimiento >= 60 %}text-warning{% elif unidad.rendimiento >= 40 %}text-orange-500{% else %}text-error{% endif %}">
+                            {{ unidad.rendimiento }}%
+                        </div>
+                        <div class="stat-desc">
+                            {% if unidad.rendimiento >= 80 %}
+                                <span class="badge badge-success badge-sm">Excelente</span>
+                            {% elif unidad.rendimiento >= 60 %}
+                                <span class="badge badge-warning badge-sm">Bueno</span>
+                            {% elif unidad.rendimiento >= 40 %}
+                                <span class="badge badge-warning badge-sm bg-orange-500 border-orange-500">Regular</span>
+                            {% else %}
+                                <span class="badge badge-error badge-sm">Bajo</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'administrador:proyectos_unidad' unidad.id %}" class="btn btn-primary btn-sm bg-congress-blue-600 hover:bg-congress-blue-700 border-none">
+                        Ver Proyectos
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-base-content/60">No se encontraron unidades.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    // Buscador dinámico de unidades
+    const buscador = document.getElementById('buscador-unidades');
+    let timeoutId;
+    
+    buscador.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        const busqueda = this.value;
+        
+        timeoutId = setTimeout(() => {
+            // Actualizar URL sin recargar la página
+            const url = new URL(window.location);
+            if (busqueda) {
+                url.searchParams.set('buscar', busqueda);
+            } else {
+                url.searchParams.delete('buscar');
+            }
+            window.history.pushState({}, '', url);
+            
+            // Recargar la página con el nuevo parámetro
+            window.location.href = url;
+        }, 500);
+    });
+</script>
+{% endblock %}

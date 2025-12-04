@@ -1,0 +1,300 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block titulo %}Editar POA{% endblock %}
+
+{% block contenido %}
+<div class="mb-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-congress-blue-800">POA {{ poa.gestion }} - {{ poa.unidad.nombre }}</h1>
+            <div class="badge {% if poa.estado == 'APROBADO' %}badge-success{% elif poa.estado == 'ENVIADO' %}badge-info{% elif poa.estado == 'RECHAZADO' %}badge-error{% else %}badge-warning{% endif %} mt-2">
+                {{ poa.get_estado_display }}
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'poa:lista_poa' %}" class="btn btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Volver
+            </a>
+            {% if poa.estado == 'BORRADOR' %}
+            <form method="post" action="{% url 'poa:enviar_poa' poa.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success" onclick="return confirm('¿Está seguro de enviar este POA para aprobación?')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Enviar para Aprobación
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Tabs de navegación -->
+<div role="tablist" class="tabs tabs-lifted tabs-lg mb-6">
+    <input type="radio" name="poa_tabs" role="tab" class="tab" aria-label="Información General" checked />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-congress-blue-700">Información General del POA</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Gestión</span>
+                                </label>
+                                {{ formulario_poa.gestion }}
+                            </div>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Unidad</span>
+                                </label>
+                                <input type="text" value="{{ poa.unidad.nombre }}" class="input input-bordered" disabled />
+                            </div>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Objetivo Estratégico</span>
+                            </label>
+                            {{ formulario_poa.objetivo_estrategico }}
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Objetivo de la Unidad</span>
+                            </label>
+                            {{ formulario_poa.objetivo_unidad }}
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit" name="actualizar_poa" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-none">
+                                Actualizar Información
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <input type="radio" name="poa_tabs" role="tab" class="tab" aria-label="Proyectos y Actividades" />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+        <!-- Botón para agregar proyecto -->
+        <div class="mb-6">
+            <button class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-none" onclick="modal_agregar_proyecto.showModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Agregar Proyecto
+            </button>
+        </div>
+
+        <!-- Lista de proyectos -->
+        {% if proyectos %}
+        <div class="space-y-6">
+            {% for proyecto in proyectos %}
+            <div class="card bg-base-100 shadow-xl border-l-4 border-congress-blue-500">
+                <div class="card-body">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="card-title text-congress-blue-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                {{ proyecto.nombre }}
+                            </h3>
+                            {% if proyecto.descripcion %}
+                            <p class="text-sm text-gray-600 mt-2">{{ proyecto.descripcion }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="dropdown dropdown-end">
+                            <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                </svg>
+                            </div>
+                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <li>
+                                    <form method="post" action="{% url 'poa:eliminar_proyecto' proyecto.id %}" onsubmit="return confirm('¿Está seguro de eliminar este proyecto?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-error">Eliminar</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Botón para agregar meta -->
+                    <button class="btn btn-sm btn-outline btn-primary" onclick="modal_agregar_meta_{{ proyecto.id }}.showModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Agregar Meta
+                    </button>
+
+                    <!-- Metas del proyecto -->
+                    {% if proyecto.metas.all %}
+                    <div class="mt-4 space-y-4">
+                        {% for meta in proyecto.metas.all %}
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title font-medium">
+                                <div class="flex justify-between items-center">
+                                    <span>Meta {{ meta.orden }}: {{ meta.descripcion|truncatewords:10 }}</span>
+                                    <div class="badge badge-primary">{{ meta.actividades.count }} actividad(es)</div>
+                                </div>
+                            </div>
+                            <div class="collapse-content">
+                                <p class="text-sm mb-4">{{ meta.descripcion }}</p>
+                                
+                                <!-- Botón para agregar actividad -->
+                                <button class="btn btn-xs btn-outline btn-secondary mb-4" onclick="modal_agregar_actividad_{{ meta.id }}.showModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Agregar Actividad
+                                </button>
+
+                                <!-- Actividades de la meta -->
+                                {% if meta.actividades.all %}
+                                <div class="overflow-x-auto">
+                                    <table class="table table-xs table-zebra">
+                                        <thead>
+                                            <tr class="bg-congress-blue-100">
+                                                <th>Actividad</th>
+                                                <th>Unidad de Medida</th>
+                                                <th>Recursos (Bs.)</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for actividad in meta.actividades.all %}
+                                            <tr>
+                                                <td class="max-w-xs">{{ actividad.descripcion|truncatewords:15 }}</td>
+                                                <td>{{ actividad.unidad_medida }}</td>
+                                                <td>{{ actividad.total_recursos|default:"N/A" }}</td>
+                                                <td>
+                                                    <div class="flex gap-1">
+                                                        <a href="{% url 'poa:editar_programacion' actividad.id %}" class="btn btn-xs btn-info">
+                                                            Programación
+                                                        </a>
+                                                        <form method="post" action="{% url 'poa:eliminar_actividad' actividad.id %}" class="inline" onsubmit="return confirm('¿Eliminar actividad?')">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-xs btn-error">Eliminar</button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="text-sm text-gray-500 italic">No hay actividades agregadas</p>
+                                {% endif %}
+
+                                <!-- Modal para agregar actividad -->
+                                <dialog id="modal_agregar_actividad_{{ meta.id }}" class="modal">
+                                    <div class="modal-box">
+                                        <h3 class="font-bold text-lg mb-4">Agregar Actividad</h3>
+                                        <form method="post" action="{% url 'poa:agregar_actividad' meta.id %}">
+                                            {% csrf_token %}
+                                            <div class="space-y-4">
+                                                <div class="form-control">
+                                                    <label class="label"><span class="label-text">Descripción</span></label>
+                                                    <textarea name="descripcion" class="textarea textarea-bordered" rows="3" required></textarea>
+                                                </div>
+                                                <div class="form-control">
+                                                    <label class="label"><span class="label-text">Unidad de Medida</span></label>
+                                                    <input type="text" name="unidad_medida" class="input input-bordered" placeholder="Ej: Documento, Evento" required />
+                                                </div>
+                                                <div class="form-control">
+                                                    <label class="label cursor-pointer justify-start gap-2">
+                                                        <input type="checkbox" name="es_cuantificable" class="checkbox checkbox-primary" checked />
+                                                        <span class="label-text">¿Es Cuantificable?</span>
+                                                    </label>
+                                                </div>
+                                                <div class="form-control">
+                                                    <label class="label"><span class="label-text">Total Recursos (Bs.)</span></label>
+                                                    <input type="number" name="total_recursos" class="input input-bordered" step="0.01" min="0" />
+                                                </div>
+                                            </div>
+                                            <div class="modal-action">
+                                                <button type="button" class="btn" onclick="modal_agregar_actividad_{{ meta.id }}.close()">Cancelar</button>
+                                                <button type="submit" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-none">Agregar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+                                </dialog>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-sm text-gray-500 italic mt-4">No hay metas agregadas a este proyecto</p>
+                    {% endif %}
+
+                    <!-- Modal para agregar meta -->
+                    <dialog id="modal_agregar_meta_{{ proyecto.id }}" class="modal">
+                        <div class="modal-box">
+                            <h3 class="font-bold text-lg mb-4">Agregar Meta al Proyecto</h3>
+                            <form method="post" action="{% url 'poa:agregar_meta' proyecto.id %}">
+                                {% csrf_token %}
+                                <div class="form-control">
+                                    <label class="label"><span class="label-text">Descripción de la Meta</span></label>
+                                    <textarea name="descripcion" class="textarea textarea-bordered" rows="3" required></textarea>
+                                </div>
+                                <div class="modal-action">
+                                    <button type="button" class="btn" onclick="modal_agregar_meta_{{ proyecto.id }}.close()">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-none">Agregar Meta</button>
+                                </div>
+                            </form>
+                        </div>
+                        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+                    </dialog>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>No hay proyectos agregados. Comience agregando un proyecto.</span>
+        </div>
+        {% endif %}
+
+        <!-- Modal para agregar proyecto -->
+        <dialog id="modal_agregar_proyecto" class="modal">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg mb-4">Agregar Nuevo Proyecto</h3>
+                <form method="post" action="{% url 'poa:agregar_proyecto' poa.id %}">
+                    {% csrf_token %}
+                    <div class="space-y-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Nombre del Proyecto</span></label>
+                            <input type="text" name="nombre" class="input input-bordered" required />
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Descripción (opcional)</span></label>
+                            <textarea name="descripcion" class="textarea textarea-bordered" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-action">
+                        <button type="button" class="btn" onclick="modal_agregar_proyecto.close()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-none">Agregar Proyecto</button>
+                    </div>
+                </form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
+    </div>
+</div>
+{% endblock %}

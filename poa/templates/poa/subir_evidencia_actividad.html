@@ -1,0 +1,127 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block title %}Subir Evidencias - {{ actividad.descripcion }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+     Breadcrumb 
+    <div class="text-sm breadcrumbs mb-6">
+        <ul>
+            <li><a href="{% url 'login:dashboard_unidad' %}">Dashboard</a></li>
+            <li><a href="{% url 'poa:ver_poa_aprobado' proyecto.id %}">POA Aprobado</a></li>
+            <li>Subir Evidencias</li>
+        </ul>
+    </div>
+
+     Header 
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-congress-blue-900 mb-2">Gestionar Evidencias</h1>
+        <p class="text-gray-600">Actividad: {{ actividad.descripcion }}</p>
+        <p class="text-sm text-gray-500">Meta: {{ actividad.meta.descripcion }}</p>
+    </div>
+
+     Formulario para subir evidencia 
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title text-congress-blue-700 mb-4">Agregar Nueva Evidencia</h2>
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Tipo de Evidencia *</span>
+                        </label>
+                        {{ formulario_evidencia.tipo_evidencia }}
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Archivo (opcional)</span>
+                        </label>
+                        {{ formulario_evidencia.archivo }}
+                        <label class="label">
+                            <span class="label-text-alt">PDF, imágenes o videos</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">URL (opcional)</span>
+                    </label>
+                    {{ formulario_evidencia.url }}
+                </div>
+                
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">Descripción *</span>
+                    </label>
+                    {{ formulario_evidencia.descripcion }}
+                </div>
+                
+                <div class="mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Subir Evidencia
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+     Lista de evidencias existentes 
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-congress-blue-700 mb-4">Evidencias Subidas</h2>
+            
+            {% if evidencias %}
+                <div class="space-y-4">
+                    {% for evidencia in evidencias %}
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="badge badge-primary">{{ evidencia.get_tipo_evidencia_display }}</span>
+                                    <span class="text-sm text-gray-500">{{ evidencia.fecha_subida|date:"d/m/Y H:i" }}</span>
+                                </div>
+                                <p class="text-gray-700 mb-2">{{ evidencia.descripcion }}</p>
+                                <div class="flex gap-2">
+                                    {% if evidencia.archivo %}
+                                    <a href="{{ evidencia.archivo.url }}" target="_blank" class="btn btn-xs btn-outline">
+                                        Ver Archivo
+                                    </a>
+                                    {% endif %}
+                                    {% if evidencia.url %}
+                                    <a href="{{ evidencia.url }}" target="_blank" class="btn btn-xs btn-outline">
+                                        Ver URL
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p>No hay evidencias subidas para esta actividad.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+     Botón volver 
+    <div class="mt-6">
+        <a href="{% url 'login:dashboard_unidad' %}" class="btn btn-outline">
+            Volver al Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

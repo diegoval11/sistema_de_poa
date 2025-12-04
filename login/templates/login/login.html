@@ -1,0 +1,85 @@
+{% extends 'login/base.html' %}
+{% load static %}
+{% block titulo %}{{ titulo }} - Alcaldía POA{% endblock %}
+
+{% block contenido %}
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="text-center mb-6">
+                    <div class="flex justify-center mb-4">
+                        <img 
+                            src="{% static 'images/Logo_Alcaldia_Small_2024.png' %}" 
+                            alt="Alcaldia Logo" 
+                            class="h-16 w-auto object-contain"
+                        >
+                    </div>
+                    <h1 class="text-3xl font-bold text-congress-blue-600">Sistema de POA</h1>
+                </div>
+
+                {# Mensajes #}
+                {% if messages %}
+                    {% for mensaje in messages %}
+                        <div class="alert alert-{{ mensaje.tags }} mb-4">
+                            <span>{{ mensaje }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {# Formulario #}
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {# Email #}
+                    <div class="form-control w-full mb-4">
+                        <label class="label" for="{{ formulario.email.id_for_label }}">
+                            <span class="label-text font-medium">{{ formulario.email.label }}</span>
+                        </label>
+                        {{ formulario.email }}
+                        {% if formulario.email.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ formulario.email.errors.0 }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+
+                    {# Password #}
+                    <div class="form-control w-full mb-4">
+                        <label class="label" for="{{ formulario.password.id_for_label }}">
+                            <span class="label-text font-medium">{{ formulario.password.label }}</span>
+                        </label>
+                        {{ formulario.password }}
+                        {% if formulario.password.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ formulario.password.errors.0 }}</span>
+                            </label>
+                        {% endif %}
+                    </div>
+
+            
+
+                    {# Errores generales #}
+                    {% if formulario.non_field_errors %}
+                        <div class="alert alert-error mb-4">
+                            {% for error in formulario.non_field_errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {# Botón de envío #}
+                    <button type="submit" class="btn btn-primary w-full">
+                        Iniciar Sesión
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {# Footer #}
+        <div class="text-center mt-6 text-base-content/60 text-sm">
+            <p>&copy; 2025 Alcaldía POA. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

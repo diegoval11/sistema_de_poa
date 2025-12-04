@@ -1,0 +1,164 @@
+{% extends 'login/base_dashboard.html' %}
+
+{% block titulo %}Registrar Avances - {{ actividad.descripcion }}{% endblock %}
+
+{% block contenido %}
+<div class="container mx-auto px-4 py-8">
+     Breadcrumb 
+    <div class="text-sm breadcrumbs mb-6">
+        <ul>
+            <li><a href="{% url 'login:dashboard_unidad' %}">Dashboard</a></li>
+            <li><a href="{% url 'poa:ver_poa_aprobado' proyecto.id %}">POA Aprobado</a></li>
+            <li>Registrar Avances</li>
+        </ul>
+    </div>
+
+     Header 
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-congress-blue-900 mb-2">Registrar Avances Mensuales</h1>
+        <p class="text-gray-600">Actividad: {{ actividad.descripcion }}</p>
+        <p class="text-sm text-gray-500">Meta: {{ actividad.meta.descripcion }}</p>
+    </div>
+
+     Información de la actividad 
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title text-congress-blue-700">Información de la Actividad</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-sm text-gray-600">Unidad de Medida</p>
+                    <p class="font-semibold">{{ actividad.unidad_medida }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Cantidad Programada Total</p>
+                    <p class="font-semibold">{{ actividad.cantidad_programada }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Es Cuantificable</p>
+                    <p class="font-semibold">{{ actividad.es_cuantificable|yesno:"Sí,No" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     Tabla de avances mensuales 
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-congress-blue-700 mb-4">Avances Mensuales</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th>Programado</th>
+                            <th>Realizado</th>
+                            <th>Estado</th>
+                            <th>% Cumplimiento</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for avance in avances %}
+                        <tr>
+                             Corregido para mostrar el nombre del mes correctamente 
+                            <td class="font-semibold">{{ avance.get_mes_display }}</td>
+                            <td>{{ avance.cantidad_programada_mes }}</td>
+                            <td>
+                                <span class="{% if avance.cantidad_realizada >= avance.cantidad_programada_mes %}text-success{% else %}text-warning{% endif %} font-semibold">
+                                    {{ avance.cantidad_realizada }}
+                                </span>
+                            </td>
+                            <td>
+                                 Agregado indicador de actividades no planificadas 
+                                {% if avance.cantidad_realizada > avance.cantidad_programada_mes %}
+                                    <span class="badge badge-info">No Planificada (+{{ avance.cantidad_realizada|add:"-"|add:avance.cantidad_programada_mes }})</span>
+                                {% elif avance.cantidad_realizada >= avance.cantidad_programada_mes %}
+                                    <span class="badge badge-success">Cumplido</span>
+                                {% elif avance.cantidad_realizada > 0 %}
+                                    <span class="badge badge-warning">Parcial</span>
+                                {% else %}
+                                    <span class="badge badge-error">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if avance.cantidad_programada_mes > 0 %}
+                                    {% widthratio avance.cantidad_realizada avance.cantidad_programada_mes 100 %}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="abrirModalAvance({{ avance.mes }}, '{{ avance.get_mes_display }}', {{ avance.cantidad_programada_mes }}, {{ avance.cantidad_realizada }})">
+                                    Actualizar
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+     Botón volver 
+    <div class="mt-6">
+        <a href="{% url 'login:dashboard_unidad' %}" class="btn btn-outline">
+            Volver al Dashboard
+        </a>
+    </div>
+</div>
+
+ Modal para actualizar avance 
+<dialog id="modal_avance" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">Actualizar Avance Mensual</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="mes" id="mes_input">
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Mes</span>
+                </label>
+                <input type="text" id="mes_nombre" class="input input-bordered" readonly>
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Cantidad Programada</span>
+                </label>
+                <input type="text" id="cantidad_programada" class="input input-bordered" readonly>
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Cantidad Realizada</span>
+                </label>
+                <input type="number" name="cantidad_realizada" id="cantidad_realizada" class="input input-bordered" min="0" required>
+                <label class="label">
+                    <span class="label-text-alt text-info">Si excede lo programado, se registrará como actividad no planificada</span>
+                </label>
+            </div>
+            
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn" onclick="document.getElementById('modal_avance').close()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+function abrirModalAvance(mes, mesNombre, programado, realizado) {
+    document.getElementById('mes_input').value = mes;
+    document.getElementById('mes_nombre').value = mesNombre;
+    document.getElementById('cantidad_programada').value = programado;
+    document.getElementById('cantidad_realizada').value = realizado;
+    document.getElementById('modal_avance').showModal();
+}
+</script>
+{% endblock %}

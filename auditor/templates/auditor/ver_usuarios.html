@@ -1,0 +1,102 @@
+{% extends 'auditor/base_auditor.html' %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="space-y-6">
+    <!-- Header con buscador y exportación -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-amber-700">{{ titulo }}</h1>
+            <p class="text-base-content/60 mt-1">Vista de solo lectura de todos los usuarios</p>
+        </div>
+        
+        <div class="flex gap-2">
+            <!-- Botones de exportación -->
+            <a href="{% url 'auditor:exportar_usuarios_pdf' %}" class="btn btn-error btn-sm" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+            </a>
+            <a href="{% url 'auditor:exportar_usuarios_excel' %}" class="btn btn-success btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </a>
+            <input 
+                type="text" 
+                id="buscador-usuarios"
+                placeholder="Buscar usuario..." 
+                class="input input-bordered w-full md:w-80"
+                value="{{ busqueda }}"
+            />
+        </div>
+    </div>
+
+    <!-- Tabla de usuarios -->
+    <div class="overflow-x-auto bg-base-100 shadow-xl rounded-lg">
+        <table class="table table-zebra w-full">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Unidad</th>
+                    <th>Estado</th>
+                    <th>Último Acceso</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="avatar placeholder">
+                                <div class="bg-amber-500 text-white rounded-full w-12">
+                                    <span class="text-xl">{{ usuario.email|slice:":1"|upper }}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold">{{ usuario.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge {% if usuario.rol == 'ADMIN' %}badge-error{% elif usuario.rol == 'AUDITOR' %}badge-warning{% else %}badge-info{% endif %}">
+                            {{ usuario.get_rol_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if usuario.unidad %}
+                            {{ usuario.unidad.nombre }}
+                        {% else %}
+                            <span class="text-gray-400">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if usuario.is_active %}badge-success{% else %}badge-error{% endif %}">
+                            {% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if usuario.last_login %}
+                            {{ usuario.last_login|date:"d/m/Y H:i" }}
+                        {% else %}
+                            <span class="text-gray-400">Nunca</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-8 text-gray-500">
+                        No se encontraron usuarios.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+</script>
+{% endblock %}

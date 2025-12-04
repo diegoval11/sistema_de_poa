@@ -1,0 +1,48 @@
+{% extends 'poa/base_poa.html' %}
+
+{% block title %}Reportes POA{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'login:dashboard_unidad' %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Volver al Dashboard
+        </a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h1 class="card-title text-3xl text-congress-blue-700 mb-4">Reportes del POA</h1>
+            <p class="text-base-content/60 mb-6">Proyecto: {{ proyecto.nombre }}</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Total Actividades</div>
+                    <div class="stat-value text-congress-blue-600">{{ total_actividades }}</div>
+                </div>
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Total Programado</div>
+                    <div class="stat-value text-congress-blue-600">{{ total_programado }}</div>
+                </div>
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-title">Total Realizado</div>
+                    <div class="stat-value text-congress-blue-600">{{ total_realizado }}</div>
+                </div>
+            </div>
+
+            <div class="card bg-base-200">
+                <div class="card-body">
+                    <h2 class="card-title">Porcentaje de Cumplimiento</h2>
+                    <div class="flex items-center gap-4">
+                        <progress class="progress progress-primary w-full" value="{{ porcentaje_cumplimiento }}" max="100"></progress>
+                        <span class="text-2xl font-bold">{{ porcentaje_cumplimiento }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

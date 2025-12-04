@@ -1,0 +1,223 @@
+{% extends 'auditor/base_auditor.html' %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-amber-700">{{ proyecto.nombre }}</h1>
+            <p class="text-gray-600 mt-2">{{ proyecto.unidad.unidad.nombre }} - Año {{ proyecto.anio }}</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'auditor:exportar_proyecto_detalle_pdf' proyecto.id %}" class="btn btn-error btn-sm" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                PDF
+            </a>
+            <a href="{% url 'auditor:exportar_proyecto_detalle_excel' proyecto.id %}" class="btn btn-success btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Excel
+            </a>
+            <a href="{% url 'auditor:ver_proyectos' %}" class="btn btn-outline btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title text-amber-700">Información General</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                    <p class="text-sm text-gray-500">Estado</p>
+                    <span class="badge {% if proyecto.estado == 'APROBADO' %}badge-success{% elif proyecto.estado == 'ENVIADO' %}badge-warning{% elif proyecto.estado == 'RECHAZADO' %}badge-error{% else %}badge-ghost{% endif %} badge-lg">
+                        {{ proyecto.get_estado_display }}
+                    </span>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Fecha de Creación</p>
+                    <p class="font-semibold">{{ proyecto.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                </div>
+                {% if proyecto.fecha_aprobacion %}
+                <div>
+                    <p class="text-sm text-gray-500">Fecha de Aprobación</p>
+                    <p class="font-semibold">{{ proyecto.fecha_aprobacion|date:"d/m/Y H:i" }}</p>
+                </div>
+                {% endif %}
+                {% if proyecto.aprobado_por %}
+                <div>
+                    <p class="text-sm text-gray-500">Aprobado Por</p>
+                    <p class="font-semibold">{{ proyecto.aprobado_por.email }}</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4">
+                <p class="text-sm text-gray-500">Objetivo de la Unidad</p>
+                <p class="mt-2">{{ proyecto.objetivo_unidad }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="stat bg-base-100 shadow-lg rounded-lg">
+            <div class="stat-title">Total de Metas</div>
+            <div class="stat-value text-amber-600">{{ metas.count }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-lg rounded-lg">
+            <div class="stat-title">Total Actividades</div>
+            <div class="stat-value text-amber-600">{{ total_actividades }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-lg rounded-lg">
+            <div class="stat-title">Presupuesto Total</div>
+            <div class="stat-value text-amber-600">$. {{ presupuesto_total }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-lg rounded-lg">
+            <div class="stat-title">Total Evidencias</div>
+            <div class="stat-value text-amber-600">{{ total_evidencias }}</div>
+        </div>
+    </div>
+
+    {% for meta in metas %}
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title text-amber-700">Meta {{ forloop.counter }}: {{ meta.descripcion }}</h2>
+            
+            <div class="mt-4 space-y-4">
+                {% for actividad in meta.actividades.all %}
+                <div class="collapse collapse-arrow bg-base-200">
+                    <input type="checkbox" /> 
+                    <div class="collapse-title text-lg font-medium">
+                        Actividad {{ forloop.counter }}: {{ actividad.descripcion }}
+                    </div>
+                    <div class="collapse-content">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 mb-6">
+                            <div>
+                                <p class="text-sm text-gray-500">Unidad de Medida</p>
+                                <p class="font-semibold">{{ actividad.unidad_medida }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Cantidad Anual</p>
+                                <p class="font-semibold">{{ actividad.cantidad_anual }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Total Recursos</p>
+                                <p class="font-semibold">$. {{ actividad.total_recursos }}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold text-amber-700 mb-4">Avances Mensuales</h3>
+                            <div class="overflow-x-auto">
+                                <table class="table table-zebra table-sm">
+                                    <thead>
+                                        <tr class="bg-amber-100">
+                                            <th>Mes</th>
+                                            <th>Programado</th>
+                                            <th>Realizado</th>
+                                            <th>Cumplimiento</th>
+                                            <th>Estado</th>
+                                            <th>Evidencias</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for avance in actividad.avances.all %}
+                                        <tr>
+                                            <td class="font-semibold">
+                                                {{ avance.get_mes_display }}
+                                            </td>
+                                            <td>{{ avance.cantidad_programada_mes }}</td>
+                                            <td>{{ avance.cantidad_realizada }}</td>
+                                            <td>
+                                                {% if avance.cumplimiento is None %}
+                                                    <span class="badge badge-neutral">No aplica</span>
+                                                {% else %}
+                                                    <span class="badge {% if avance.cumplimiento >= 90 %}badge-success{% elif avance.cumplimiento >= 70 %}badge-warning{% else %}badge-error{% endif %}">
+                                                        {{ avance.cumplimiento }}%
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if avance.cantidad_realizada > avance.cantidad_programada_mes %}
+                                                    <span class="badge badge-info">No Planificada</span>
+                                                {% elif avance.cantidad_realizada >= avance.cantidad_programada_mes %}
+                                                    <span class="badge badge-success">Cumplido</span>
+                                                {% elif avance.cantidad_realizada > 0 %}
+                                                    <span class="badge badge-warning">Parcial</span>
+                                                {% else %}
+                                                    <span class="badge badge-error">Pendiente</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-outline">
+                                                    {{ avance.evidencias_count }} evidencia{{ avance.evidencias_count|pluralize }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-gray-500">No hay avances registrados</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold text-amber-700 mb-4">Evidencias Subidas</h3>
+                            {% if actividad.evidencias.all %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {% for evidencia in actividad.evidencias.all %}
+                                <div class="card bg-base-200 shadow-sm">
+                                    <div class="card-body p-4">
+                                        <div class="flex items-start gap-3">
+                                            <div class="flex-shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-semibold truncate">{{ evidencia.nombre_archivo }}</p>
+                                                <p class="text-xs text-gray-500">
+                                                    Mes: 
+                                                    {{ evidencia.get_mes_display }}
+                                                </p>
+                                                <p class="text-xs text-gray-500">{{ evidencia.fecha_subida|date:"d/m/Y H:i" }}</p>
+                                                {% if evidencia.descripcion %}
+                                                <p class="text-xs text-gray-600 mt-1">{{ evidencia.descripcion|truncatewords:15 }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <a href="{{ evidencia.archivo.url }}" target="_blank" class="btn btn-xs btn-outline btn-amber">
+                                                Ver
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>No hay evidencias subidas para esta actividad</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

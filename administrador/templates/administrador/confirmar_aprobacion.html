@@ -1,0 +1,35 @@
+{% extends 'administrador/base_admin.html' %}
+
+{% block contenido %}
+<div class="flex justify-center items-center min-h-[60vh]">
+    <div class="card bg-base-100 shadow-xl border border-base-200 max-w-lg w-full">
+        <div class="card-body text-center">
+            <div class="flex justify-center mb-4">
+                <div class="p-4 bg-green-100 rounded-full text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <h2 class="card-title justify-center text-2xl mb-2">¿Aprobar Proyecto?</h2>
+            <p class="text-base-content/70 mb-6">
+                ¿Está seguro que desea aprobar el proyecto <strong>"{{ proyecto.nombre }}"</strong>?
+                <br>
+                <span class="text-xs mt-2 block">Esta acción habilitará a la unidad para registrar avances.</span>
+            </p>
+            
+            <div class="card-actions justify-center gap-4">
+                <a href="{% url 'administrador:dashboard' %}" class="btn btn-ghost">Cancelar</a>
+                
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success text-white">
+                        Sí, Aprobar Proyecto
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

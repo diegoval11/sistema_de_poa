@@ -1,0 +1,169 @@
+{% extends 'poa/base_dashboard.html' %}
+
+{% block titulo %}{{ titulo }} - Alcaldía POA{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div>
+            <h1 class="text-2xl font-bold text-congress-blue-800">Hola, {{ unidad.nombre }}</h1>
+            <p class="text-base-content/60">Bienvenido al sistema de gestión de Planes Operativos Anuales.</p>
+        </div>
+        <a href="{% url 'poa:crear_proyecto_wizard' %}" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0 shadow-md gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Crear Nuevo POA
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stats shadow bg-white border border-gray-100">
+            <div class="stat">
+                <div class="stat-figure text-congress-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <div class="stat-title text-gray-500">Total Proyectos</div>
+                <div class="stat-value text-congress-blue-700">{{ total_proyectos }}</div>
+                <div class="stat-desc">Histórico completo</div>
+            </div>
+        </div>
+
+        <div class="stats shadow bg-white border border-gray-100">
+            <div class="stat">
+                <div class="stat-figure text-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title text-gray-500">En Ejecución</div>
+                <div class="stat-value text-success">{{ proyectos_aprobados }}</div>
+                <div class="stat-desc text-success">Aprobados</div>
+            </div>
+        </div>
+
+        <div class="stats shadow bg-white border border-gray-100">
+            <div class="stat">
+                <div class="stat-figure text-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="stat-title text-gray-500">En Revisión</div>
+                <div class="stat-value text-warning">{{ proyectos_revision }}</div>
+                <div class="stat-desc">Esperando aprobación</div>
+            </div>
+        </div>
+
+        <div class="stats shadow bg-white border border-gray-100">
+            <div class="stat">
+                <div class="stat-figure text-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                </div>
+                <div class="stat-title text-gray-500">Cumplimiento</div>
+                <div class="stat-value text-info">{{ cumplimiento_global }}%</div>
+                <div class="stat-desc">Promedio global</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl border border-gray-100">
+        <div class="card-body p-0">
+            <div class="p-5 border-b border-base-200 flex justify-between items-center">
+                <h2 class="card-title text-congress-blue-700 text-lg">Proyectos Recientes</h2>
+                <a href="{% url 'poa:lista_proyectos' %}" class="btn btn-sm btn-ghost text-congress-blue-600">
+                    Ver todos
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+
+            {% if tiene_proyectos %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead class="bg-base-200/50">
+                        <tr>
+                            <th>Proyecto</th>
+                            <th>Año</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for proyecto in proyectos_recientes %}
+                        <tr class="hover">
+                            <td>
+                                <div class="font-bold text-congress-blue-900">{{ proyecto.nombre }}</div>
+                                <div class="text-xs text-base-content/60 truncate max-w-xs">
+                                    {{ proyecto.objetivo_unidad|default:"Sin objetivo definido" }}
+                                </div>
+                            </td>
+                            <td class="font-medium">{{ proyecto.anio }}</td>
+                            <td>
+                                {% if proyecto.estado == 'BORRADOR' %}
+                                    <div class="badge badge-ghost gap-2">Borrador</div>
+                                {% elif proyecto.estado == 'ENVIADO' %}
+                                    <div class="badge badge-warning gap-2">En Revisión</div>
+                                {% elif proyecto.estado == 'APROBADO' %}
+                                    <div class="badge badge-success gap-2 text-white">Aprobado</div>
+                                {% elif proyecto.estado == 'RECHAZADO' %}
+                                    <div class="badge badge-error gap-2 text-white">Rechazado</div>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="flex justify-center gap-2">
+                                    {% if proyecto.estado == 'APROBADO' %}
+                                        <a href="{% url 'poa:gestionar_avances' proyecto.id %}" class="btn btn-square btn-sm btn-success text-white tooltip" data-tip="Gestionar Avances">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                            </svg>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% if proyecto.estado == 'BORRADOR' or proyecto.estado == 'RECHAZADO' %}
+                                        <a href="{% url 'poa:editar_proyecto' proyecto.id %}" class="btn btn-square btn-sm btn-ghost text-info tooltip" data-tip="Editar">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <a href="{% url 'poa:detalle_proyecto' proyecto.id %}" class="btn btn-square btn-sm btn-ghost tooltip" data-tip="Ver Detalles">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-base-content/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No hay proyectos</h3>
+                <p class="mt-1 text-sm text-gray-500">Comience creando su primer Plan Operativo Anual.</p>
+                <div class="mt-6">
+                    <a href="{% url 'poa:crear_proyecto_wizard' %}" class="btn btn-primary bg-congress-blue-600 hover:bg-congress-blue-700 border-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Crear Proyecto
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
