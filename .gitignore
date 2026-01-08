@@ -20,15 +20,20 @@ wheels/
 *.egg
 *.manifest
 *.spec
-
+db.sqlite3
+data/
+*.sqlite3
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
 db.sqlite3-journal
 media/
 
 # Virtualenv
 venv/
+.venv/
 env/
 ENV/
+
+
+.env

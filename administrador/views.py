@@ -154,13 +154,18 @@ def estadisticas_admin(request):
             Proyecto.objects.filter(estado='RECHAZADO').count(),
             Proyecto.objects.filter(estado='BORRADOR').count()
         ],
-        'programado_mensual': [], 'realizado_mensual': []
+        'cumplimiento_mensual': []
     }
     for mes in range(1, 13):
-        programado = AvanceMensual.objects.filter(mes=mes).aggregate(total=Count('cantidad_programada_mes'))['total'] or 0
-        realizado = AvanceMensual.objects.filter(mes=mes).aggregate(total=Count('cantidad_realizada'))['total'] or 0
-        proyectos_data['programado_mensual'].append(programado)
-        proyectos_data['realizado_mensual'].append(realizado)
+        # Calculamos el promedio de cumplimiento de todas las actividades en ese mes
+        # Solo consideramos avances que tengan un cumplimiento calculado (no nulo)
+        promedio = AvanceMensual.objects.filter(
+            mes=mes, 
+            cumplimiento__isnull=False
+        ).aggregate(promedio=Avg('cumplimiento'))['promedio']
+        
+        val = float(promedio) if promedio is not None else 0.0
+        proyectos_data['cumplimiento_mensual'].append(round(val, 2))
     
     total_unidades = unidades_con_datos.count() 
     total_proyectos = Proyecto.objects.count()

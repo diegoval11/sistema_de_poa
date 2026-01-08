@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web_poa:
+    build: .
+    container_name: sistema_poa_container
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      # PERSISTENCIA CRÍTICA:
+      # 1. Mapeamos la base de datos a un archivo en el servidor real
+      - ./data/db.sqlite3:/app/db.sqlite3
+      # 2. Mapeamos la carpeta media para que las fotos/PDFs no se pierdan
+      - ./media:/app/media
+
+    env:
+    - .env
+
+
+

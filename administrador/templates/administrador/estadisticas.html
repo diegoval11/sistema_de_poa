@@ -10,353 +10,362 @@
             <p class="text-gray-600 mt-2">Análisis detallado del desempeño de las unidades</p>
         </div>
         <a href="{% url 'administrador:dashboard' %}" class="btn btn-outline btn-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Volver al Dashboard
         </a>
     </div>
 
-    
 
- <div class="min-h-screen items-center justify-center bg-base-200 p-4">
-    <!-- Ajustado el max-w- a 7xl para dar más espacio a las tablas/tarjetas -->
-    <div class="w-full max-w-7xl mx-auto">
 
-        <div role="tablist" class="tabs tabs-lifted tabs-lg">
-            
-            <!-- ===== Pestaña General ===== -->
-            <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="General" 
-                   {% if active_tab == 'general' %}checked{% endif %} />
-            <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-                <div class="grid grid-cols-1 lg:grid-cols-1 gap-6"> <!-- CAMBIADO a 1 columna -->
-                    <div class="card bg-white shadow-xl">
-                        <div class="card-body">
-                            <h2 class="card-title text-congress-blue-700">Cumplimiento por Unidad</h2>
-                            
-                            <!-- ================================================== -->
-                            <!-- CAMBIO 1: Contenedor con scroll para el gráfico   -->
-                            <!-- ================================================== -->
-                            <div class="max-h-[600px] overflow-y-auto p-2 bg-base-200/30 rounded-lg relative">
-                                <canvas id="chartCumplimientoUnidades"></canvas>
-                            </div>
+    <div class="min-h-screen items-center justify-center bg-base-200 p-4">
+        <!-- Ajustado el max-w- a 7xl para dar más espacio a las tablas/tarjetas -->
+        <div class="w-full max-w-7xl mx-auto">
 
-                        </div>
-                    </div>
-                    <!-- El gráfico de Proyectos fue movido a su propia pestaña -->
-                </div>
-            </div>
+            <div role="tablist" class="tabs tabs-lifted tabs-lg">
 
-            <!-- ===== Pestaña Proyectos (NUEVA) ===== -->
-            <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="Proyectos" 
-                   {% if active_tab == 'proyectos' %}checked{% endif %} />
-            <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-                <div class="grid grid-cols-1 gap-6">
-                    <div class="card bg-white shadow-xl">
-                        <div class="card-body">
-                            <h2 class="card-title text-congress-blue-700">Distribución de Proyectos</h2>
-                            <!-- CAMBIO 1: Añadido div con altura fija y 'relative' -->
-                            <div class="h-96 relative">
-                                <canvas id="chartDistribucionProyectos"></canvas>
+                <!-- ===== Pestaña General ===== -->
+                <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="General" {% if active_tab == 'general' %}checked{% endif %} />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-1 gap-6"> <!-- CAMBIADO a 1 columna -->
+                        <div class="card bg-white shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title text-congress-blue-700">Cumplimiento por Unidad</h2>
+
+                                <!-- ================================================== -->
+                                <!-- CAMBIO 1: Contenedor con scroll para el gráfico   -->
+                                <!-- ================================================== -->
+                                <div class="max-h-[600px] overflow-y-auto p-2 bg-base-200/30 rounded-lg relative">
+                                    <canvas id="chartCumplimientoUnidades"></canvas>
+                                </div>
+
                             </div>
                         </div>
+                        <!-- El gráfico de Proyectos fue movido a su propia pestaña -->
                     </div>
                 </div>
-            </div>
 
-            <!-- ===== Pestaña Avances ===== -->
-            <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="Avances" 
-                   {% if active_tab == 'avances' %}checked{% endif %} />
-            <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-                <div class="grid grid-cols-1 gap-6">
-                    <div class="card bg-white shadow-xl">
-                        <div class="card-body">
-                            <h2 class="card-title text-congress-blue-700">Avances Mensuales</h2>
-                            <canvas id="chartAvancesMensuales"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== Pestaña Comparativa ===== -->
-            <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="Comparativa" 
-                   {% if active_tab == 'comparativa' %}checked{% endif %} />
-            <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-                <div class="grid grid-cols-1 gap-6">
-                    <div class="card bg-white shadow-xl">
-                        <div class="card-body">
-                            <h2 class="card-title text-congress-blue-700">Comparativa de Desempeño</h2>
-                            <canvas id="chartComparativaRadar"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ================================================== -->
-            <!-- ===== PESTAÑA TRIMESTRAL (CORREGIDA) ===== -->
-            <!-- ================================================== -->
-            <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="Trimestral" 
-                   {% if active_tab == 'trimestral' %}checked{% endif %} />
-            <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-                
-                <!-- Buscador (Formulario) -->
-                <form method="GET" action="" class="form-control w-full md:w-80 mb-4">
-                    <input 
-                        type="text" 
-                        name="buscar"
-                        id="buscador-trimestral"
-                        placeholder="Buscar unidad..." 
-                        class="input input-bordered w-full"
-                        value="{{ busqueda }}"
-                    />
-                    <input type="hidden" name="tab" value="trimestral">
-                </form>
-
-                <!-- Botones de Exportación -->
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <a href="{% url 'administrador:exportar_reporte_trimestral_pdf' %}?buscar={{ busqueda }}"
-                       class="btn btn-info btn-sm gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Exportar PDF
-                    </a>
-                    <a href="{% url 'administrador:exportar_reporte_trimestral_excel' %}?buscar={{ busqueda }}"
-                       class="btn btn-success btn-sm gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Exportar Excel
-                    </a>
-                </div>
-
-                <!-- Contenedor de unidades (columna única y más ancha) -->
-                <div id="contenedor-trimestral" class="grid grid-cols-1 md:max-w-4xl mx-auto gap-4">
-                    
-                    <!-- Bucle FOR para las tarjetas de unidad -->
-                    {% for unidad in unidades_trimestrales_page %}
-                    <div class="card card-trimestral bg-base-100 shadow-xl w-full"> 
-                        <div class="card-body">
-                            <h2 class="card-title text-congress-blue-700">{{ unidad.nombre }}</h2>
-                            
-                            <div class="stats stats-horizontal shadow mt-4 w-full">
-                                <div class="stat">
-                                    <div class="stat-title">Trimestre 1</div>
-                                    <div class="stat-value text-lg {% if unidad.t1 >= 80 %}text-success{% elif unidad.t1 >= 60 %}text-warning{% else %}text-error{% endif %}">
-                                        {{ unidad.t1|default:"0" }}%
-                                    </div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-title">Trimestre 2</div>
-                                    <div class="stat-value text-lg {% if unidad.t2 >= 80 %}text-success{% elif unidad.t2 >= 60 %}text-warning{% else %}text-error{% endif %}">
-                                        {{ unidad.t2|default:"0" }}%
-                                    </div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-title">Trimestre 3</div>
-                                    <div class="stat-value text-lg {% if unidad.t3 >= 80 %}text-success{% elif unidad.t3 >= 60 %}text-warning{% else %}text-error{% endif %}">
-                                        {{ unidad.t3|default:"0" }}%
-                                    </div>
-                                </div>
-                                <div class="stat">
-                                    <div class="stat-title">Trimestre 4</div>
-                                    <div class="stat-value text-lg {% if unidad.t4 >= 80 %}text-success{% elif unidad.t4 >= 60 %}text-warning{% else %}text-error{% endif %}">
-                                        {{ unidad.t4|default:"0" }}%
-                                    </div>
+                <!-- ===== Pestaña Proyectos (NUEVA) ===== -->
+                <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="Proyectos" {% if active_tab == 'proyectos' %}checked{% endif %} />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="card bg-white shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title text-congress-blue-700">Distribución de Proyectos</h2>
+                                <!-- CAMBIO 1: Añadido div con altura fija y 'relative' -->
+                                <div class="h-96 relative">
+                                    <canvas id="chartDistribucionProyectos"></canvas>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {% empty %}
-                    <div class="col-span-full text-center py-12">
-                        <p class="text-base-content/60">
-                            {% if busqueda %}
+                </div>
+
+                <!-- ===== Pestaña Avances ===== -->
+                <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="Avances" {% if active_tab == 'avances' %}checked{% endif %} />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="card bg-white shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title text-congress-blue-700">Promedio de Cumplimiento Mensual</h2>
+                                <p class="text-sm text-gray-500 mb-4">Promedio del porcentaje de cumplimiento de todas
+                                    las actividades por mes.</p>
+                                <canvas id="chartAvancesMensuales"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== Pestaña Comparativa ===== -->
+                <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="Comparativa" {% if active_tab == 'comparativa' %}checked{% endif %} />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="card bg-white shadow-xl">
+                            <div class="card-body">
+                                <h2 class="card-title text-congress-blue-700">Comparativa de Desempeño</h2>
+                                <canvas id="chartComparativaRadar"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================== -->
+                <!-- ===== PESTAÑA TRIMESTRAL (CORREGIDA) ===== -->
+                <!-- ================================================== -->
+                <input type="radio" name="graficos_tabs" role="tab" class="tab" aria-label="Trimestral" {% if active_tab == 'trimestral' %}checked{% endif %} />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+
+                    <!-- Buscador (Formulario) -->
+                    <form method="GET" action="" class="form-control w-full md:w-80 mb-4">
+                        <input type="text" name="buscar" id="buscador-trimestral" placeholder="Buscar unidad..."
+                            class="input input-bordered w-full" value="{{ busqueda }}" />
+                        <input type="hidden" name="tab" value="trimestral">
+                    </form>
+
+                    <!-- Botones de Exportación -->
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <a href="{% url 'administrador:exportar_reporte_trimestral_pdf' %}?buscar={{ busqueda }}"
+                            class="btn btn-info btn-sm gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Exportar PDF
+                        </a>
+                        <a href="{% url 'administrador:exportar_reporte_trimestral_excel' %}?buscar={{ busqueda }}"
+                            class="btn btn-success btn-sm gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Exportar Excel
+                        </a>
+                    </div>
+
+                    <!-- Contenedor de unidades (columna única y más ancha) -->
+                    <div id="contenedor-trimestral" class="grid grid-cols-1 md:max-w-4xl mx-auto gap-4">
+
+                        <!-- Bucle FOR para las tarjetas de unidad -->
+                        {% for unidad in unidades_trimestrales_page %}
+                        <div class="card card-trimestral bg-base-100 shadow-xl w-full">
+                            <div class="card-body">
+                                <h2 class="card-title text-congress-blue-700">{{ unidad.nombre }}</h2>
+
+                                <div class="stats stats-horizontal shadow mt-4 w-full">
+                                    <div class="stat">
+                                        <div class="stat-title">Trimestre 1</div>
+                                        <div
+                                            class="stat-value text-lg {% if unidad.t1 >= 80 %}text-success{% elif unidad.t1 >= 60 %}text-warning{% else %}text-error{% endif %}">
+                                            {{ unidad.t1|default:"0" }}%
+                                        </div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-title">Trimestre 2</div>
+                                        <div
+                                            class="stat-value text-lg {% if unidad.t2 >= 80 %}text-success{% elif unidad.t2 >= 60 %}text-warning{% else %}text-error{% endif %}">
+                                            {{ unidad.t2|default:"0" }}%
+                                        </div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-title">Trimestre 3</div>
+                                        <div
+                                            class="stat-value text-lg {% if unidad.t3 >= 80 %}text-success{% elif unidad.t3 >= 60 %}text-warning{% else %}text-error{% endif %}">
+                                            {{ unidad.t3|default:"0" }}%
+                                        </div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-title">Trimestre 4</div>
+                                        <div
+                                            class="stat-value text-lg {% if unidad.t4 >= 80 %}text-success{% elif unidad.t4 >= 60 %}text-warning{% else %}text-error{% endif %}">
+                                            {{ unidad.t4|default:"0" }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-full text-center py-12">
+                            <p class="text-base-content/60">
+                                {% if busqueda %}
                                 No se encontraron unidades que coincidan con "{{ busqueda }}".
-                            {% else %}
+                                {% else %}
                                 No se encontraron datos trimestrales para mostrar.
-                            {% endif %}
-                        </p>
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
-                
-                <!-- Controles de Paginación -->
-                <div class="join mt-8 flex justify-center">
-                    {% if unidades_trimestrales_page.has_previous %}
-                        <a href="?page=1&buscar={{ busqueda }}&tab=trimestral" 
-                           class="join-item btn">«</a>
-                        <a href="?page={{ unidades_trimestrales_page.previous_page_number }}&buscar={{ busqueda }}&tab=trimestral" 
-                           class="join-item btn">‹</a>
-                    {% endif %}
-                    
-                    <button class="join-item btn" disabled>
-                        Página {{ unidades_trimestrales_page.number }} de {{ unidades_trimestrales_page.paginator.num_pages }}
-                    </button>
-                    
-                    {% if unidades_trimestrales_page.has_next %}
-                        <a href="?page={{ unidades_trimestrales_page.next_page_number }}&buscar={{ busqueda }}&tab=trimestral" 
-                           class="join-item btn">›</a>
-                        <a href="?page={{ unidades_trimestrales_page.paginator.num_pages }}&buscar={{ busqueda }}&tab=trimestral" 
-                           class="join-item btn">»</a>
-                    {% endif %}
-                </div>
-                
-            </div> <!-- Cierre del tabpanel trimestral -->
-        </div> <!-- Cierre del tablist -->
-    </div> 
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-    const unidadesData = {{ unidades_data|safe }};
-    const proyectosData = {{ proyectos_data|safe }};
+                    <!-- Controles de Paginación -->
+                    <div class="join mt-8 flex justify-center">
+                        {% if unidades_trimestrales_page.has_previous %}
+                        <a href="?page=1&buscar={{ busqueda }}&tab=trimestral" class="join-item btn">«</a>
+                        <a href="?page={{ unidades_trimestrales_page.previous_page_number }}&buscar={{ busqueda }}&tab=trimestral"
+                            class="join-item btn">‹</a>
+                        {% endif %}
 
-    // Colores del tema
-    const colors = {
-        primary: '#1e40af',
-        success: '#10b981',
-        warning: '#f59e0b',
-        error: '#ef4444',
-        info: '#3b82f6'
-    };
-    
-    // ==================================================
-    // CAMBIO 2: Lógica del Gráfico de Cumplimiento
-    // ==================================================
-    const ctxCumplimiento = document.getElementById('chartCumplimientoUnidades').getContext('2d');
-    const canvasCumplimiento = document.getElementById('chartCumplimientoUnidades');
-    
-    // --- INICIO DE LA MODIFICACIÓN ---
-    
-    // 1. Calcular altura dinámica para el scroll
-    // Damos 30px por cada barra para que sea legible
-    const numUnidades = unidadesData.nombres.length;
-    // (Asegura un mínimo de altura por si no hay datos)
-    const alturaCanvas = numUnidades > 0 ? numUnidades * 30 : 300; // 72 unidades * 30px = 2160px
-    
-    // Asignamos la altura directamente al estilo del canvas
-    // El div contenedor con max-h-[600px] se encargará del scroll
-    canvasCumplimiento.style.height = `${alturaCanvas}px`;
+                        <button class="join-item btn" disabled>
+                            Página {{ unidades_trimestrales_page.number }} de {{
+                            unidades_trimestrales_page.paginator.num_pages }}
+                        </button>
 
-    new Chart(ctxCumplimiento, {
-        type: 'bar', // Sigue siendo 'bar', pero cambiaremos el eje
-        data: {
-            labels: unidadesData.nombres,
-            datasets: [{
-                label: 'Cumplimiento (%)',
-                data: unidadesData.cumplimiento,
-                backgroundColor: colors.primary,
-                borderColor: colors.primary,
-                borderWidth: 1
-            }]
-        },
-        options: {
-<<<<<<< HEAD
-            indexAxis: 'y', // <-- 2. ¡LA MAGIA! Lo vuelve horizontal
-            responsive: true,
-            maintainAspectRatio: false, // <-- 3. CRÍTICO para que el scroll funcione
-            scales: { 
-                x: { // <-- 4. Eje 'x' ahora es el porcentaje
-=======
-            indexAxis: 'y', 
-            responsive: true,
-            maintainAspectRatio: false, 
-            scales: { 
-                x: { 
->>>>>>> 90324ef (correcciones de datos requeridos/no requeridos y exportacion en excel y pdf)
-                    beginAtZero: true, 
-                    max: 100, 
-                    ticks: { callback: function(value) { return value + '%'; } } 
-                },
-                y: { // <-- Eje 'y' son las unidades
-                    beginAtZero: true
-                }
+                        {% if unidades_trimestrales_page.has_next %}
+                        <a href="?page={{ unidades_trimestrales_page.next_page_number }}&buscar={{ busqueda }}&tab=trimestral"
+                            class="join-item btn">›</a>
+                        <a href="?page={{ unidades_trimestrales_page.paginator.num_pages }}&buscar={{ busqueda }}&tab=trimestral"
+                            class="join-item btn">»</a>
+                        {% endif %}
+                    </div>
+
+                </div> <!-- Cierre del tabpanel trimestral -->
+            </div> <!-- Cierre del tablist -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        const unidadesData = {{ unidades_data| safe }};
+        const proyectosData = {{ proyectos_data| safe }};
+
+        // Colores del tema
+        const colors = {
+            primary: '#1e40af',
+            success: '#10b981',
+            warning: '#f59e0b',
+            error: '#ef4444',
+            info: '#3b82f6'
+        };
+
+        // ==================================================
+        // CAMBIO 2: Lógica del Gráfico de Cumplimiento
+        // ==================================================
+        const ctxCumplimiento = document.getElementById('chartCumplimientoUnidades').getContext('2d');
+        const canvasCumplimiento = document.getElementById('chartCumplimientoUnidades');
+
+        // --- INICIO DE LA MODIFICACIÓN ---
+
+        // 1. Calcular altura dinámica para el scroll
+        // Damos 30px por cada barra para que sea legible
+        const numUnidades = unidadesData.nombres.length;
+        // (Asegura un mínimo de altura por si no hay datos)
+        const alturaCanvas = numUnidades > 0 ? numUnidades * 30 : 300; // 72 unidades * 30px = 2160px
+
+        // Asignamos la altura directamente al estilo del canvas
+        // El div contenedor con max-h-[600px] se encargará del scroll
+        canvasCumplimiento.style.height = `${alturaCanvas}px`;
+
+        new Chart(ctxCumplimiento, {
+            type: 'bar', // Sigue siendo 'bar', pero cambiaremos el eje
+            data: {
+                labels: unidadesData.nombres,
+                datasets: [{
+                    label: 'Cumplimiento (%)',
+                    data: unidadesData.cumplimiento,
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                    borderWidth: 1
+                }]
             },
-            plugins: {
-                legend: { display: false },
-                tooltip: { 
-                    callbacks: { 
-                        // 5. Tooltip ahora lee 'x' en vez de 'y'
-                        label: function(context) { return 'Cumplimiento: ' + context.parsed.x + '%'; } 
-                    } 
+            options: {
+                indexAxis: 'y', // <-- 2. ¡LA MAGIA! Lo vuelve horizontal
+                responsive: true,
+                maintainAspectRatio: false, // <-- 3. CRÍTICO para que el scroll funcione
+                scales: {
+                    x: { // <-- 4. Eje 'x' ahora es el porcentaje
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { callback: function (value) { return value + '%'; } }
+                    },
+                    y: { // <-- Eje 'y' son las unidades
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            // 5. Tooltip ahora lee 'x' en vez de 'y'
+                            label: function (context) { return 'Cumplimiento: ' + context.parsed.x + '%'; }
+                        }
+                    }
                 }
             }
-        }
-    });
-    // --- FIN DE LA MODIFICACIÓN ---
+        });
+        // --- FIN DE LA MODIFICACIÓN ---
 
 
-    // Gráfico de Distribución de Proyectos (Sin cambios)
-    const ctxDistribucion = document.getElementById('chartDistribucionProyectos').getContext('2d');
-    new Chart(ctxDistribucion, {
-        type: 'doughnut',
-        data: {
-            labels: ['Aprobados', 'Enviados', 'Rechazados', 'Borradores'],
-            datasets: [{
-                data: proyectosData.estados,
-                backgroundColor: [colors.success, colors.warning, colors.error, '#9ca3af'],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, /* CAMBIO 2: Cambiado a 'false' */
-            plugins: { legend: { position: 'bottom' } } 
-        }
-    });
+        // Gráfico de Distribución de Proyectos (Sin cambios)
+        const ctxDistribucion = document.getElementById('chartDistribucionProyectos').getContext('2d');
+        new Chart(ctxDistribucion, {
+            type: 'doughnut',
+            data: {
+                labels: ['Aprobados', 'Enviados', 'Rechazados', 'Borradores'],
+                datasets: [{
+                    data: proyectosData.estados,
+                    backgroundColor: [colors.success, colors.warning, colors.error, '#9ca3af'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, /* CAMBIO 2: Cambiado a 'false' */
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
 
-    // Gráfico de Avances Mensuales (Sin cambios)
-    const ctxAvances = document.getElementById('chartAvancesMensuales').getContext('2d');
-    new Chart(ctxAvances, {
-        type: 'line',
-        data: {
-            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-            datasets: [
-                {
-                    label: 'Programado',
-                    data: proyectosData.programado_mensual,
-                    borderColor: colors.primary,
-                    backgroundColor: colors.primary + '20',
-                    tension: 0.4,
-                    fill: true
+        // Gráfico de Avances Mensuales (MODIFICADO: Cumplimiento Promedio)
+        const ctxAvances = document.getElementById('chartAvancesMensuales').getContext('2d');
+        new Chart(ctxAvances, {
+            type: 'line',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                datasets: [
+                    {
+                        label: 'Cumplimiento Promedio (%)',
+                        data: proyectosData.cumplimiento_mensual,
+                        borderColor: colors.success,
+                        backgroundColor: colors.success + '20',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Porcentaje (%)'
+                        }
+                    }
                 },
-                {
-                    label: 'Realizado',
-                    data: proyectosData.realizado_mensual,
-                    borderColor: colors.success,
-                    backgroundColor: colors.success + '20',
-                    tension: 0.4,
-                    fill: true
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
                 }
-            ]
-        },
-        options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'top' } } }
-    });
+            }
+        });
 
-    // Gráfico Radar de Comparativa (Sin cambios)
-    const ctxRadar = document.getElementById('chartComparativaRadar').getContext('2d');
-    const datasets = unidadesData.nombres.slice(0, 5).map((nombre, index) => ({
-        label: nombre,
-        data: unidadesData.metricas[index],
-        borderColor: `hsl(${index * 72}, 70%, 50%)`,
-        backgroundColor: `hsl(${index * 72}, 70%, 50%, 0.2)`,
-        borderWidth: 2
-    }));
+        // Gráfico Radar de Comparativa (Sin cambios)
+        const ctxRadar = document.getElementById('chartComparativaRadar').getContext('2d');
+        const datasets = unidadesData.nombres.slice(0, 5).map((nombre, index) => ({
+            label: nombre,
+            data: unidadesData.metricas[index],
+            borderColor: `hsl(${index * 72}, 70%, 50%)`,
+            backgroundColor: `hsl(${index * 72}, 70%, 50%, 0.2)`,
+            borderWidth: 2
+        }));
 
-    new Chart(ctxRadar, {
-        type: 'radar',
-        data: {
-            labels: ['Cumplimiento', 'Evidencias', 'Actividades', 'Puntualidad', 'Calidad'],
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            scales: { r: { beginAtZero: true, max: 100 } },
-            plugins: { legend: { position: 'bottom' } }
-        }
-    });
-</script>
+        new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: ['Cumplimiento', 'Evidencias', 'Actividades', 'Puntualidad', 'Calidad'],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: { r: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    </script>
 
-{% endblock %}
+    {% endblock %}
