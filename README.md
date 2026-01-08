@@ -1,122 +1,95 @@
-# Sistema de Plan Operativo Anual (POA) - Alcaldía
+Sistema de Plan Operativo Anual (POA) - Alcaldía
+Aplicación web para la gestión, seguimiento y auditoría del Plan Operativo Anual (POA). Permite a las unidades administrativas definir metas y reportar avances, facilitando la supervisión por parte de administradores y auditores.
 
-Este proyecto es una aplicación web desarrollada con Django, diseñada para la gestión, seguimiento y auditoría del Plan Operativo Anual (POA) por unidades administrativas.
-Permite a las unidades (`poa`) definir metas, planificar actividades y reportar avances, mientras que los roles de `administrador` y `auditor` supervisan y validan la información.
+El sistema está containerizado con Docker para un despliegue rápido, seguro y escalable en servidores de producción (Ubuntu/Linux).
 
-## 🚀 Características Principales
+Características Principales
+Gestión del POA: Creación y administración de proyectos y objetivos anuales.
 
-* **Gestión del POA:** Creación y administración de proyectos y objetivos por año.
-* **Roles de Usuario:** Sistema de permisos para `UNIDAD`, `ADMINISTRADOR` y `AUDITOR` (definido en `login.Usuario`).
-* **Metas y Actividades:** Definición de metas por proyecto y actividades detalladas.
-* **Seguimiento Mensual:** Registro de avances (`AvanceMensual`) con cálculo de cumplimiento.
-* **Gestión de Evidencias:** Subida de archivos (PDF, Fotos, etc.) para justificar avances.
-* **Logs de Auditoría:** Registro de acciones importantes en la plataforma.
+Roles Jerárquicos: Sistema de permisos para UNIDAD, ADMINISTRADOR y AUDITOR.
 
-## 🛠️ Tecnologías Utilizadas
+Trazabilidad: Registro de avances (AvanceMensual) con cálculo automático de cumplimiento.
 
-* **Backend:**
-    * Python 3.10+
-    * Django 5.2.8
-* **Frontend:**
-    * HTML5 / CSS3 / JavaScript
-    * Tailwind CSS + Daisy UI
-* **Base de Datos (Desarrollo):**
-    * SQLite 3
+Evidencias: Carga de archivos (PDF, Imágenes) para justificar los reportes.
 
-## 📋 Prerrequisitos
+Logs de Auditoría: Registro inmutable de acciones críticas.
 
-Para correr este proyecto, necesitarás tener instalado:
+🛠️ Stack Tecnológico
+Infraestructura: Docker & Docker Compose (Nginx + Gunicorn).
 
-* Python 3.10 o superior
-* `pip` (manejador de paquetes de Python)
-* Node.js y `npm` (para las dependencias de frontend y `node_modules`)
-* Git
+Backend: Python 3.10+ / Django 5.2.8.
 
+Frontend: Tailwind CSS + Daisy UI (Servido vía Nginx/WhiteNoise).
 
+Base de Datos: SQLite 3 (Persistente vía Volúmenes Docker).
 
+Prerrequisitos del Servidor
+Para desplegar este proyecto en un servidor Ubuntu, solo necesitas:
 
+Docker Engine y Docker Compose V2.
 
-⚙️ Guía de Instalación: Sistema de POA (alcaldiaPOA)
-Sigue estos pasos para configurar y ejecutar el proyecto en tu entorno de desarrollo local.
+Git.
 
-1. Configuración Inicial (Clonar y Entorno)
-Primero, clona el repositorio y configura el entorno virtual de Python.
+No es necesario instalar Python, Node.js o pip en el sistema anfitrión, ya que todo corre dentro de los contenedores.
 
+⚙️ Guía de Despliegue (Producción con Docker)
+Sigue estos pasos para levantar el proyecto en un servidor limpio.
+
+1. Clonar el Repositorio
 Bash
 
-# 1. Clona el repositorio y entra a la carpeta
 git clone https://github.com/diegoval11/sistema_de_poa/
 cd alcaldiaPOA
-
-# 2. Crea el entorno virtual
-python -m venv venv
-
-# 3. Activa el entorno virtual
-# En Linux/Mac:
-source venv/bin/activate
-
-# (O) En Windows (cmd/PowerShell):
-.\venv\Scripts\activate
-2. Instalación de Dependencias
-Instala todos los paquetes necesarios tanto para el backend (Python) como para el frontend (Node.js).
+2. Configurar Variables de Entorno
+Crea un archivo .env en la raíz del proyecto. Esto es crucial para la seguridad en producción.
 
 Bash
 
-# 1. Instala las dependencias de Python
-pip install -r requirements.txt
+cp .env.example .env
+nano .env
+Asegúrate de cambiar DEBUG=False y establecer una SECRET_KEY segura y única.
 
-# 2. Instala las dependencias de Node.js
-npm install
-3. Configuración de la Base de Datos
-Antes de ejecutar el proyecto, necesitas preparar la base de datos y crear los datos iniciales.
-
-Bash
-
-# 1. Aplica las migraciones de Django para crear las tablas
-python manage.py migrate
-Importante: El sistema requiere que exista una "Unidad" especial con id=0 antes de poder crear cualquier usuario.
+3. Construir y Levantar Contenedores
+Este comando compilará el frontend, preparará el backend y levantará el servidor Nginx (Proxy Inverso).
 
 Bash
 
-# 2. Abre la shell de Django
-python manage.py shell
+docker compose up -d --build
+(El flag -d ejecuta los contenedores en segundo plano).
 
-# 3. Dentro de la shell (>>>), ejecuta el siguiente código:
-from login.models import Unidad
-unidad_obj, created = Unidad.objects.update_or_create(
-    id=0,
-    defaults={
-       'nombre': "Unidad Administrativa",
-       'activa': True,
-       'sin_reporte': True
-    }
-)
-
-# 4. Escribe 'exit()' y presiona Enter para salir
-exit()
-Bash
-
-# 5. Ahora sí, crea tu cuenta de superusuario
-python manage.py createsuperuser
-4. ▶️ Ejecutar el Proyecto
-Necesitarás dos terminales separadas (ambas en la carpeta del proyecto) para correr el backend y el frontend simultáneamente.
-
-Terminal 1: Correr el Backend (Django) Asegúrate de tener el (venv) activado
+4. Inicialización de la Base de Datos
+Una vez los contenedores estén corriendo, ejecuta las migraciones. Este paso crea las tablas y automáticamente configura la Unidad Administrativa inicial (ID=0) necesaria para el sistema.
 
 Bash
 
-python manage.py runserver
-Terminal 2: Correr el Frontend (Vite/Node)
+docker compose exec web python manage.py migrate
+5. Crear Superusuario
+Para acceder al panel de administración y gestionar las unidades, crea tu usuario administrador:
 
 Bash
 
-npm run dev
+docker compose exec web python manage.py createsuperuser
+Comandos Útiles de Mantenimiento
+Ver logs del servidor (para depuración):
 
+Bash
 
+docker compose logs -f web
+Reiniciar el sistema (tras cambios en código):
 
+Bash
 
+docker compose restart
+Hacer backup de la base de datos (SQLite):
 
+Bash
 
+cp db.sqlite3 db_backup_$(date +%Y%m%d).sqlite3
+--Notas sobre la Arquitectura Docker
+Este despliegue utiliza un Proxy Inverso (Nginx) configurado automáticamente en el docker-compose.yml:
 
+Nginx recibe las peticiones del puerto 80.
 
+Sirve los archivos estáticos optimizados.
 
+Protege y redirige el tráfico dinámico hacia el contenedor de Django (Gunicorn).
