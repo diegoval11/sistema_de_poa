@@ -14,7 +14,7 @@ services:
       # 2. Mapeamos la carpeta media para que las fotos/PDFs no se pierdan
       - ./media:/app/media
 
-    env:
+    env_file:
     - .env
 
 
