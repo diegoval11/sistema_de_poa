@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bullseye
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -16,8 +16,10 @@ COPY . .
 # Crear carpeta para logs
 RUN mkdir -p logs
 
-# Recolectar estáticos
-RUN python manage.py collectstatic --noinput
+
+# Recolectar estático
+RUN SECRET_KEY=clave-temporal-para-build python manage.py collectstatic --noinput
+
 
 # --- NUEVO: Configuración del Entrypoint ---
 
